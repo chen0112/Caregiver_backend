@@ -13,6 +13,10 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 s3 = boto3.client('s3')
 
+@app.route('/status')
+def status():
+    return "Gunicorn is running!", 200
+
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
