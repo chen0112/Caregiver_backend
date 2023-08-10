@@ -1,10 +1,10 @@
 from flask import Flask, g, request, jsonify
 from flask_cors import CORS
 import psycopg2
+from psycopg2 import pool
 import boto3
 from werkzeug.utils import secure_filename
 import os
-
 
 
 app = Flask(__name__)
@@ -17,25 +17,26 @@ s3 = boto3.client('s3')
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
-        return 'No file part'
+        return jsonify({"error": "No file part"}), 400
     file = request.files['file']
     if file.filename == '':
-        return 'No selected file'
+        return jsonify({"error": "No selected file"}), 400
     if file:
         filename = secure_filename(file.filename)
-        file.save(os.path.join('/tmp', filename))
-        response = s3.upload_file(
-            '/tmp/' + filename,
-            'alex-chen',  # Your bucket name
-            filename
-        )
-        # Updated with your bucket and region name
-        url = f"https://alex-chen.s3.us-west-1.amazonaws.com/{filename}"
-        return url
+        tmp_filepath = os.path.join('/tmp', filename)
+        file.save(tmp_filepath)
+        try:
+            response = s3.upload_file(tmp_filepath, 'alex-chen', filename)
+            url = f"https://alex-chen.s3.us-west-1.amazonaws.com/{filename}"
+            # Cleanup temp file
+            os.remove(tmp_filepath)
+            return jsonify({"url": url})
+        except Exception as e:
+            # You can log the exception for debugging
+            return jsonify({"error": "File upload failed"}), 500
 
 
 # Database connection configuration
-
 
 db_config = {
     "dbname": os.environ.get("DB_NAME"),
@@ -47,7 +48,8 @@ db_config = {
 
 
 # Setting up a connection pool
-db_pool = psycopg2.pool.SimpleConnectionPool(1, 20, **db_config) 
+db_pool = psycopg2.pool.SimpleConnectionPool(1, 20, **db_config)
+
 
 def get_db():
     # Check if db instance is set, if not get a new connection
@@ -55,6 +57,7 @@ def get_db():
         g.db = db_pool.getconn()
 
     return g.db
+
 
 @app.teardown_appcontext
 def close_db(error):
@@ -85,8 +88,6 @@ def get_caregivers():
 
     # Close the connection
     cursor.close()
-    conn.close()
-    db_pool.closeall()
 
     # Format the data for JSON
     caregivers = [
@@ -107,6 +108,7 @@ def get_caregivers():
 
     return jsonify(caregivers)
 
+
 @app.route("/api/caregivers/<int:caregiver_id>", methods=["GET"])
 def get_caregiver_detail(caregiver_id):
     # Connect to the PostgreSQL database
@@ -119,7 +121,6 @@ def get_caregiver_detail(caregiver_id):
 
     # Close the connection
     cursor.close()
-    conn.close()
 
     # Check if a caregiver with the given id exists
     if not row:
@@ -139,7 +140,6 @@ def get_caregiver_detail(caregiver_id):
     }
 
     return jsonify(caregiver)
-
 
 
 @app.route("/api/caregivers", methods=["POST"])
@@ -179,7 +179,6 @@ def add_caregiver():
     # Commit the changes and close the connection
     conn.commit()
     cursor.close()
-    conn.close()
 
     # Return the newly created caregiver data with the assigned ID
     new_caregiver = {
