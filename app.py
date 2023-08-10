@@ -74,7 +74,6 @@ caregivers = [
 
 
 @app.route("/api/caregivers", methods=["GET"])
-@app.teardown_appcontext
 def get_caregivers():
     # Connect to the PostgreSQL database
     conn = get_db()
