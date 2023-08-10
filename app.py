@@ -1,7 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, g, request, jsonify
 from flask_cors import CORS
 import psycopg2
-import os
 import boto3
 from werkzeug.utils import secure_filename
 import os
@@ -36,13 +35,34 @@ def upload_file():
 
 
 # Database connection configuration
+
+
 db_config = {
-    "dbname": "react_app",
-    "user": "postgres",
-    "password": "password",
-    "host": "localhost",
-    "port": "5432",
+    "dbname": os.environ.get("DB_NAME"),
+    "user": os.environ.get("DB_USER"),
+    "password": os.environ.get("DB_PASSWORD"),
+    "host": os.environ.get("DB_HOST"),
+    "port": os.environ.get("DB_PORT"),
 }
+
+
+# Setting up a connection pool
+db_pool = psycopg2.pool.SimpleConnectionPool(1, 20, **db_config) 
+
+def get_db():
+    # Check if db instance is set, if not get a new connection
+    if 'db' not in g:
+        g.db = db_pool.getconn()
+
+    return g.db
+
+@app.teardown_appcontext
+def close_db(error):
+    # If this request used the database, close the used connection
+    db = g.pop('db', None)
+
+    if db is not None:
+        db_pool.putconn(db)
 
 
 # Sample caregiver data (you can replace this with your actual database integration)
@@ -54,9 +74,10 @@ caregivers = [
 
 
 @app.route("/api/caregivers", methods=["GET"])
+@app.teardown_appcontext
 def get_caregivers():
     # Connect to the PostgreSQL database
-    conn = psycopg2.connect(**db_config)
+    conn = get_db()
     cursor = conn.cursor()
 
     # Fetch caregivers from the database
@@ -66,6 +87,7 @@ def get_caregivers():
     # Close the connection
     cursor.close()
     conn.close()
+    db_pool.closeall()
 
     # Format the data for JSON
     caregivers = [
@@ -89,7 +111,7 @@ def get_caregivers():
 @app.route("/api/caregivers/<int:caregiver_id>", methods=["GET"])
 def get_caregiver_detail(caregiver_id):
     # Connect to the PostgreSQL database
-    conn = psycopg2.connect(**db_config)
+    conn = get_db()
     cursor = conn.cursor()
 
     # Fetch the specific caregiver from the database using the id
@@ -126,7 +148,7 @@ def add_caregiver():
     data = request.get_json()
 
     # Connect to the PostgreSQL database
-    conn = psycopg2.connect(**db_config)
+    conn = get_db()
     cursor = conn.cursor()
 
     # Define the columns and values for the INSERT query
