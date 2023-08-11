@@ -87,20 +87,22 @@ caregivers = [
 
 @app.route("/api/caregivers", methods=["GET"])
 def get_caregivers():
+    logger.debug("Handling GET /api/caregivers request")
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
         cursor = conn.cursor(cursor_factory=DictCursor)
 
-
         # Fetch caregivers from the database
         cursor.execute("SELECT * FROM caregivers")
         rows = cursor.fetchall()
+        logger.debug(f"Fetched {len(rows)} caregivers from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
+            logger.warning("No caregivers found in the database")
             return jsonify({"error": "Problem of fetching caregivers"}), 404
 
         # Format the data for JSON
@@ -119,6 +121,7 @@ def get_caregivers():
             for row in rows
         ]
 
+        logger.debug("Successfully processed caregivers data")
         return jsonify(caregivers)
     except Exception as e:
         logger.error("Error fetching caregivers", exc_info=True)
