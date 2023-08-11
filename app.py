@@ -90,7 +90,8 @@ def get_caregivers():
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
-        cursor = conn.cursor()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
 
         # Fetch caregivers from the database
         cursor.execute("SELECT * FROM caregivers")
@@ -99,19 +100,21 @@ def get_caregivers():
         # Close the connection
         cursor.close()
 
+        if not rows:
+            return jsonify({"error": "Problem of fetching caregivers"}), 404
+
         # Format the data for JSON
         caregivers = [
             {
-                "id": row[0],
-                "name": row[1],
-                "description": row[2],
-                # add the rest of your fields here, make sure to match the order they appear in your database
-                "years_of_experience": row[3],
-                "age": row[4],
-                "education": row[5],
-                "gender": row[6],
-                "phone": row[7],
-                "imageUrl": row[8]
+                "id": row["id"],
+                "name": row["name"],
+                "description": row["description"],
+                "years_of_experience": row["years_of_experience"],
+                "age": row["age"],
+                "education": row["education"],
+                "gender": row["gender"],
+                "phone": row["phone"],
+                "imageUrl": row["imageurl"]
             }
             for row in rows
         ]
