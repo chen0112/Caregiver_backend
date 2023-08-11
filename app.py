@@ -6,7 +6,10 @@ import boto3
 from werkzeug.utils import secure_filename
 import os
 from psycopg2.extras import DictCursor
+import logging
 
+logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -21,24 +24,25 @@ def status():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file part"}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-    if file:
-        filename = secure_filename(file.filename)
-        tmp_filepath = os.path.join('/tmp', filename)
-        file.save(tmp_filepath)
-        try:
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file part"}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+        if file:
+            filename = secure_filename(file.filename)
+            tmp_filepath = os.path.join('/tmp', filename)
+            file.save(tmp_filepath)
             response = s3.upload_file(tmp_filepath, 'alex-chen', filename)
             url = f"https://alex-chen.s3.us-west-1.amazonaws.com/{filename}"
             # Cleanup temp file
             os.remove(tmp_filepath)
             return jsonify({"url": url})
-        except Exception as e:
-            # You can log the exception for debugging
-            return jsonify({"error": "File upload failed"}), 500
+    except Exception as e:
+        # You can log the exception for debugging
+        logger.error("File upload failed", exc_info=True)
+        return jsonify({"error": "File upload failed"}), 500
 
 
 # Database connection configuration
@@ -83,121 +87,135 @@ caregivers = [
 
 @app.route("/api/caregivers", methods=["GET"])
 def get_caregivers():
-    # Connect to the PostgreSQL database
-    conn = get_db()
-    cursor = conn.cursor()
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
 
-    # Fetch caregivers from the database
-    cursor.execute("SELECT * FROM caregivers")
-    rows = cursor.fetchall()
+        # Fetch caregivers from the database
+        cursor.execute("SELECT * FROM caregivers")
+        rows = cursor.fetchall()
 
-    # Close the connection
-    cursor.close()
+        # Close the connection
+        cursor.close()
 
-    # Format the data for JSON
-    caregivers = [
-        {
-            "id": row[0],
-            "name": row[1],
-            "description": row[2],
-            # add the rest of your fields here, make sure to match the order they appear in your database
-            "years_of_experience": row[3],
-            "age": row[4],
-            "education": row[5],
-            "gender": row[6],
-            "phone": row[7],
-            "imageUrl": row[8]
-        }
-        for row in rows
-    ]
+        # Format the data for JSON
+        caregivers = [
+            {
+                "id": row[0],
+                "name": row[1],
+                "description": row[2],
+                # add the rest of your fields here, make sure to match the order they appear in your database
+                "years_of_experience": row[3],
+                "age": row[4],
+                "education": row[5],
+                "gender": row[6],
+                "phone": row[7],
+                "imageUrl": row[8]
+            }
+            for row in rows
+        ]
 
-    return jsonify(caregivers)
+        return jsonify(caregivers)
+    except Exception as e:
+        logger.error("Error fetching caregivers", exc_info=True)
+        return jsonify({"error": "Failed to fetch caregivers"}), 500
 
 
 @app.route("/api/caregivers/<int:caregiver_id>", methods=["GET"])
 def get_caregiver_detail(caregiver_id):
-    # Connect to the PostgreSQL database
-    conn = get_db()
-    cursor = conn.cursor(cursor_factory=DictCursor)
+    try: 
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
 
-    # Fetch the specific caregiver from the database using the id
-    cursor.execute("SELECT * FROM caregivers WHERE id = %s", (caregiver_id,))
-    row = cursor.fetchone()
+        # Fetch the specific caregiver from the database using the id
+        cursor.execute("SELECT * FROM caregivers WHERE id = %s", (caregiver_id,))
+        row = cursor.fetchone()
 
-    # Close the connection
-    cursor.close()
+        # Close the connection
+        cursor.close()
 
-    # Check if a caregiver with the given id exists
-    if not row:
-        return jsonify({"error": "Caregiver not found"}), 404
+        # Check if a caregiver with the given id exists
+        if not row:
+            return jsonify({"error": "Caregiver not found"}), 404
 
-    # Format the data for JSON
-    caregiver = {
-        "id": row["id"],
-        "name": row["name"],
-        "description": row["description"],
-        "years_of_experience": row["years_of_experience"],
-        "age": row["age"],
-        "education": row["education"],
-        "gender": row["gender"],
-        "phone": row["phone"],
-        "imageUrl": row["imageurl"]
-    }
+        # Format the data for JSON
+        caregiver = {
+            "id": row["id"],
+            "name": row["name"],
+            "description": row["description"],
+            "years_of_experience": row["years_of_experience"],
+            "age": row["age"],
+            "education": row["education"],
+            "gender": row["gender"],
+            "phone": row["phone"],
+            "imageUrl": row["imageurl"]
+        }
 
-    return jsonify(caregiver)
+        return jsonify(caregiver)
+    except Exception as e:
+        logger.error(f"Error fetching caregiver detail for id {caregiver_id}", exc_info=True)
+        return jsonify({"error": "Failed to fetch caregiver detail"}), 500
+
+
 
 
 @app.route("/api/caregivers", methods=["POST"])
 def add_caregiver():
-    data = request.get_json()
+    try:
+        data = request.get_json()
 
-    # Connect to the PostgreSQL database
-    conn = get_db()
-    cursor = conn.cursor()
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
 
-    # Define the columns and values for the INSERT query
-    columns = ["name", "phone", "description", "imageUrl"]
+        # Define the columns and values for the INSERT query
+        columns = ["name", "phone", "description", "imageUrl"]
 
-    values = [data[field] for field in columns]
+        values = [data[field] for field in columns]
 
-    # Optional fields: yearsOfExperience, age, education, gender
-    # Add them to the INSERT query only if they are present in the data
-    optional_fields = ["years_of_experience", "age", "education", "gender"]
-    for field in optional_fields:
-        if field in data:
-            columns.append(field)
-            values.append(data[field])
-        else:
-            # If the optional field is missing, set a default value or NULL
-            # For example, set the yearsOfExperience to NULL
-            # You can customize the default values as needed
-            columns.append(field)
-            values.append(None)
+        # Optional fields: yearsOfExperience, age, education, gender
+        # Add them to the INSERT query only if they are present in the data
+        optional_fields = ["years_of_experience", "age", "education", "gender"]
+        for field in optional_fields:
+            if field in data:
+                columns.append(field)
+                values.append(data[field])
+            else:
+                # If the optional field is missing, set a default value or NULL
+                # For example, set the yearsOfExperience to NULL
+                # You can customize the default values as needed
+                columns.append(field)
+                values.append(None)
 
-    # Construct the INSERT query with the appropriate number of placeholders
-    insert_query = f"INSERT INTO caregivers ({', '.join(columns)}) VALUES ({', '.join(['%s'] * len(columns))}) RETURNING id"
+        # Construct the INSERT query with the appropriate number of placeholders
+        insert_query = f"INSERT INTO caregivers ({', '.join(columns)}) VALUES ({', '.join(['%s'] * len(columns))}) RETURNING id"
 
-    # Execute the INSERT query with the values
-    cursor.execute(insert_query, values)
-    new_caregiver_id = cursor.fetchone()[0]
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_caregiver_id = cursor.fetchone()[0]
 
-    # Commit the changes and close the connection
-    conn.commit()
-    cursor.close()
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
 
-    # Return the newly created caregiver data with the assigned ID
-    new_caregiver = {
-        "id": new_caregiver_id,
-        "name": data["name"],
-        "phone": data["phone"],
-        "description": data["description"],
-        "age": data["age"],
-        "education": data["education"],
-        "gender": data["gender"],
-        "years_of_experience": data["years_of_experience"],
-        "imageUrl": data["imageUrl"],
-    }
-    return jsonify(new_caregiver), 201
+        # Return the newly created caregiver data with the assigned ID
+        new_caregiver = {
+            "id": new_caregiver_id,
+            "name": data["name"],
+            "phone": data["phone"],
+            "description": data["description"],
+            "age": data["age"],
+            "education": data["education"],
+            "gender": data["gender"],
+            "years_of_experience": data["years_of_experience"],
+            "imageUrl": data["imageUrl"],
+        }
+        return jsonify(new_caregiver), 201
+    except Exception as e:
+        logger.error("Error adding caregiver", exc_info=True)
+        return jsonify({"error": "Failed to add caregiver"}), 500
 
 
 if __name__ == "__main__":
