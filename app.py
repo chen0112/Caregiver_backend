@@ -5,6 +5,7 @@ from psycopg2 import pool
 import boto3
 from werkzeug.utils import secure_filename
 import os
+from psycopg2.extras import DictCursor
 
 
 app = Flask(__name__)
@@ -117,7 +118,7 @@ def get_caregivers():
 def get_caregiver_detail(caregiver_id):
     # Connect to the PostgreSQL database
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor_factory=DictCursor)
 
     # Fetch the specific caregiver from the database using the id
     cursor.execute("SELECT * FROM caregivers WHERE id = %s", (caregiver_id,))
@@ -132,15 +133,15 @@ def get_caregiver_detail(caregiver_id):
 
     # Format the data for JSON
     caregiver = {
-        "id": row[0],
-        "name": row[1],
-        "description": row[2],
-        "years_of_experience": row[3],
-        "age": row[4],
-        "education": row[5],
-        "gender": row[6],
-        "phone": row[7],
-        "imageUrl": row[8]
+        "id": row["id"],
+        "name": row["name"],
+        "description": row["description"],
+        "years_of_experience": row["years_of_experience"],
+        "age": row["age"],
+        "education": row["education"],
+        "gender": row["gender"],
+        "phone": row["phone"],
+        "imageUrl": row["imageurl"]
     }
 
     return jsonify(caregiver)
