@@ -216,12 +216,14 @@ def add_caregiver():
             "education": data["education"],
             "gender": data["gender"],
             "years_of_experience": data["years_of_experience"],
-            "imageUrl": data["imageUrl"],
+            "imageUrl": data["imageurl"],
         }
         return jsonify(new_caregiver), 201
+   
     except Exception as e:
-        logger.error("Error adding caregiver", exc_info=True)
+        logger.error(f"Error adding caregiver: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add caregiver"}), 500
+
 
 
 if __name__ == "__main__":
