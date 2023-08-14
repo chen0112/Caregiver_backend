@@ -8,7 +8,7 @@ import os
 from psycopg2.extras import DictCursor
 import logging
 
-logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
+logging.basicConfig(filename='/var/log/app.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
