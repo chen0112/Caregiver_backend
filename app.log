@@ -1,0 +1,214 @@
+2023-08-14 20:58:52,933 DEBUG botocore.hooks MainThread : Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+2023-08-14 20:58:52,933 DEBUG botocore.hooks MainThread : Changing event name from before-call.apigateway to before-call.api-gateway
+2023-08-14 20:58:52,934 DEBUG botocore.hooks MainThread : Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+2023-08-14 20:58:52,934 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+2023-08-14 20:58:52,934 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+2023-08-14 20:58:52,934 DEBUG botocore.hooks MainThread : Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+2023-08-14 20:58:52,935 DEBUG botocore.hooks MainThread : Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+2023-08-14 20:58:52,935 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+2023-08-14 20:58:52,936 DEBUG botocore.hooks MainThread : Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+2023-08-14 20:58:52,936 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+2023-08-14 20:58:52,936 DEBUG botocore.hooks MainThread : Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+2023-08-14 20:58:52,941 DEBUG botocore.utils MainThread : IMDS ENDPOINT: http://169.254.169.254/
+2023-08-14 20:58:52,946 DEBUG botocore.credentials MainThread : Looking for credentials via: env
+2023-08-14 20:58:52,946 DEBUG botocore.credentials MainThread : Looking for credentials via: assume-role
+2023-08-14 20:58:52,946 DEBUG botocore.credentials MainThread : Looking for credentials via: assume-role-with-web-identity
+2023-08-14 20:58:52,946 DEBUG botocore.credentials MainThread : Looking for credentials via: sso
+2023-08-14 20:58:52,946 DEBUG botocore.credentials MainThread : Looking for credentials via: shared-credentials-file
+2023-08-14 20:58:52,946 INFO botocore.credentials MainThread : Found credentials in shared credentials file: ~/.aws/credentials
+2023-08-14 20:58:52,947 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/endpoints.json
+2023-08-14 20:58:52,958 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/sdk-default-configuration.json
+2023-08-14 20:58:52,958 DEBUG botocore.hooks MainThread : Event choose-service-name: calling handler <function handle_service_name_alias at 0x102da82c0>
+2023-08-14 20:58:52,987 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/s3/2006-03-01/service-2.json
+2023-08-14 20:58:53,000 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/s3/2006-03-01/endpoint-rule-set-1.json.gz
+2023-08-14 20:58:53,002 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/partitions.json
+2023-08-14 20:58:53,003 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function add_generate_presigned_post at 0x102cec900>
+2023-08-14 20:58:53,003 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function lazy_call.<locals>._handler at 0x102e5aac0>
+2023-08-14 20:58:53,024 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function add_generate_presigned_url at 0x102cec680>
+2023-08-14 20:58:53,025 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: environment_service
+2023-08-14 20:58:53,025 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: environment_global
+2023-08-14 20:58:53,025 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: config_service
+2023-08-14 20:58:53,025 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: config_global
+2023-08-14 20:58:53,025 DEBUG botocore.configprovider MainThread : No configured endpoint found.
+2023-08-14 20:58:53,060 DEBUG botocore.endpoint MainThread : Setting s3 timeout as (60, 60)
+2023-08-14 20:58:53,061 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/_retry.json
+2023-08-14 20:58:53,062 DEBUG botocore.client MainThread : Registering retry handlers for service: s3
+2023-08-14 20:58:53,062 DEBUG botocore.utils MainThread : Registering S3 region redirector handler
+2023-08-14 20:58:53,246 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2023-08-14 20:58:53,246 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2023-08-14 20:58:53,246 INFO werkzeug MainThread :  * Restarting with stat
+2023-08-14 20:58:53,392 DEBUG botocore.hooks MainThread : Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+2023-08-14 20:58:53,393 DEBUG botocore.hooks MainThread : Changing event name from before-call.apigateway to before-call.api-gateway
+2023-08-14 20:58:53,393 DEBUG botocore.hooks MainThread : Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+2023-08-14 20:58:53,394 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+2023-08-14 20:58:53,394 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+2023-08-14 20:58:53,394 DEBUG botocore.hooks MainThread : Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+2023-08-14 20:58:53,394 DEBUG botocore.hooks MainThread : Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+2023-08-14 20:58:53,395 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+2023-08-14 20:58:53,395 DEBUG botocore.hooks MainThread : Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+2023-08-14 20:58:53,395 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+2023-08-14 20:58:53,395 DEBUG botocore.hooks MainThread : Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+2023-08-14 20:58:53,397 DEBUG botocore.utils MainThread : IMDS ENDPOINT: http://169.254.169.254/
+2023-08-14 20:58:53,403 DEBUG botocore.credentials MainThread : Looking for credentials via: env
+2023-08-14 20:58:53,403 DEBUG botocore.credentials MainThread : Looking for credentials via: assume-role
+2023-08-14 20:58:53,403 DEBUG botocore.credentials MainThread : Looking for credentials via: assume-role-with-web-identity
+2023-08-14 20:58:53,403 DEBUG botocore.credentials MainThread : Looking for credentials via: sso
+2023-08-14 20:58:53,403 DEBUG botocore.credentials MainThread : Looking for credentials via: shared-credentials-file
+2023-08-14 20:58:53,403 INFO botocore.credentials MainThread : Found credentials in shared credentials file: ~/.aws/credentials
+2023-08-14 20:58:53,404 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/endpoints.json
+2023-08-14 20:58:53,418 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/sdk-default-configuration.json
+2023-08-14 20:58:53,418 DEBUG botocore.hooks MainThread : Event choose-service-name: calling handler <function handle_service_name_alias at 0x1049e82c0>
+2023-08-14 20:58:53,428 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/s3/2006-03-01/service-2.json
+2023-08-14 20:58:53,444 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/s3/2006-03-01/endpoint-rule-set-1.json.gz
+2023-08-14 20:58:53,445 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/partitions.json
+2023-08-14 20:58:53,447 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function add_generate_presigned_post at 0x10492c900>
+2023-08-14 20:58:53,447 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function lazy_call.<locals>._handler at 0x104a9aac0>
+2023-08-14 20:58:53,454 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function add_generate_presigned_url at 0x10492c680>
+2023-08-14 20:58:53,454 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: environment_service
+2023-08-14 20:58:53,454 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: environment_global
+2023-08-14 20:58:53,454 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: config_service
+2023-08-14 20:58:53,454 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: config_global
+2023-08-14 20:58:53,454 DEBUG botocore.configprovider MainThread : No configured endpoint found.
+2023-08-14 20:58:53,456 DEBUG botocore.endpoint MainThread : Setting s3 timeout as (60, 60)
+2023-08-14 20:58:53,456 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/_retry.json
+2023-08-14 20:58:53,457 DEBUG botocore.client MainThread : Registering retry handlers for service: s3
+2023-08-14 20:58:53,457 DEBUG botocore.utils MainThread : Registering S3 region redirector handler
+2023-08-14 20:58:53,506 WARNING werkzeug MainThread :  * Debugger is active!
+2023-08-14 20:58:53,511 INFO werkzeug MainThread :  * Debugger PIN: 711-142-473
+2023-08-14 21:26:51,013 INFO __main__ Thread-2 (process_request_thread) : Entering GET /api/caregivers request
+2023-08-14 21:26:51,017 DEBUG __main__ Thread-2 (process_request_thread) : Handling GET /api/caregivers request
+2023-08-14 21:26:51,046 DEBUG __main__ Thread-2 (process_request_thread) : Fetched 23 caregivers from the database
+2023-08-14 21:26:51,046 DEBUG __main__ Thread-2 (process_request_thread) : Successfully processed caregivers data
+2023-08-14 21:26:51,053 INFO werkzeug Thread-2 (process_request_thread) : 127.0.0.1 - - [14/Aug/2023 21:26:51] "GET /api/caregivers HTTP/1.1" 200 -
+2023-08-14 21:26:51,530 INFO werkzeug Thread-3 (process_request_thread) : 127.0.0.1 - - [14/Aug/2023 21:26:51] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2023-08-14 21:28:49,350 INFO werkzeug MainThread :  * Detected change in '/Users/alexchen/react-app-backend/app.py', reloading
+2023-08-14 21:28:49,499 INFO werkzeug MainThread :  * Restarting with stat
+2023-08-14 21:50:26,860 DEBUG botocore.hooks MainThread : Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+2023-08-14 21:50:26,861 DEBUG botocore.hooks MainThread : Changing event name from before-call.apigateway to before-call.api-gateway
+2023-08-14 21:50:26,861 DEBUG botocore.hooks MainThread : Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+2023-08-14 21:50:26,862 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+2023-08-14 21:50:26,862 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+2023-08-14 21:50:26,862 DEBUG botocore.hooks MainThread : Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+2023-08-14 21:50:26,862 DEBUG botocore.hooks MainThread : Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+2023-08-14 21:50:26,863 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+2023-08-14 21:50:26,863 DEBUG botocore.hooks MainThread : Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+2023-08-14 21:50:26,863 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+2023-08-14 21:50:26,863 DEBUG botocore.hooks MainThread : Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+2023-08-14 21:50:26,870 DEBUG botocore.utils MainThread : IMDS ENDPOINT: http://169.254.169.254/
+2023-08-14 21:50:26,874 DEBUG botocore.credentials MainThread : Looking for credentials via: env
+2023-08-14 21:50:26,874 DEBUG botocore.credentials MainThread : Looking for credentials via: assume-role
+2023-08-14 21:50:26,874 DEBUG botocore.credentials MainThread : Looking for credentials via: assume-role-with-web-identity
+2023-08-14 21:50:26,874 DEBUG botocore.credentials MainThread : Looking for credentials via: sso
+2023-08-14 21:50:26,874 DEBUG botocore.credentials MainThread : Looking for credentials via: shared-credentials-file
+2023-08-14 21:50:26,874 INFO botocore.credentials MainThread : Found credentials in shared credentials file: ~/.aws/credentials
+2023-08-14 21:50:26,875 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/endpoints.json
+2023-08-14 21:50:26,886 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/sdk-default-configuration.json
+2023-08-14 21:50:26,886 DEBUG botocore.hooks MainThread : Event choose-service-name: calling handler <function handle_service_name_alias at 0x103b1c2c0>
+2023-08-14 21:50:26,913 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/s3/2006-03-01/service-2.json
+2023-08-14 21:50:26,926 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/s3/2006-03-01/endpoint-rule-set-1.json.gz
+2023-08-14 21:50:26,927 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/partitions.json
+2023-08-14 21:50:26,928 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function add_generate_presigned_post at 0x103a60900>
+2023-08-14 21:50:26,928 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function lazy_call.<locals>._handler at 0x103bd2ac0>
+2023-08-14 21:50:26,943 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function add_generate_presigned_url at 0x103a60680>
+2023-08-14 21:50:26,943 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: environment_service
+2023-08-14 21:50:26,943 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: environment_global
+2023-08-14 21:50:26,943 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: config_service
+2023-08-14 21:50:26,943 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: config_global
+2023-08-14 21:50:26,943 DEBUG botocore.configprovider MainThread : No configured endpoint found.
+2023-08-14 21:50:26,975 DEBUG botocore.endpoint MainThread : Setting s3 timeout as (60, 60)
+2023-08-14 21:50:26,976 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/_retry.json
+2023-08-14 21:50:26,976 DEBUG botocore.client MainThread : Registering retry handlers for service: s3
+2023-08-14 21:50:26,976 DEBUG botocore.utils MainThread : Registering S3 region redirector handler
+2023-08-14 21:50:27,117 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2023-08-14 21:50:27,117 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2023-08-14 21:50:27,117 INFO werkzeug MainThread :  * Restarting with stat
+2023-08-14 21:50:27,267 DEBUG botocore.hooks MainThread : Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+2023-08-14 21:50:27,268 DEBUG botocore.hooks MainThread : Changing event name from before-call.apigateway to before-call.api-gateway
+2023-08-14 21:50:27,268 DEBUG botocore.hooks MainThread : Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+2023-08-14 21:50:27,269 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+2023-08-14 21:50:27,269 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+2023-08-14 21:50:27,269 DEBUG botocore.hooks MainThread : Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+2023-08-14 21:50:27,269 DEBUG botocore.hooks MainThread : Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+2023-08-14 21:50:27,270 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+2023-08-14 21:50:27,270 DEBUG botocore.hooks MainThread : Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+2023-08-14 21:50:27,270 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+2023-08-14 21:50:27,270 DEBUG botocore.hooks MainThread : Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+2023-08-14 21:50:27,271 DEBUG botocore.utils MainThread : IMDS ENDPOINT: http://169.254.169.254/
+2023-08-14 21:50:27,275 DEBUG botocore.credentials MainThread : Looking for credentials via: env
+2023-08-14 21:50:27,275 DEBUG botocore.credentials MainThread : Looking for credentials via: assume-role
+2023-08-14 21:50:27,275 DEBUG botocore.credentials MainThread : Looking for credentials via: assume-role-with-web-identity
+2023-08-14 21:50:27,275 DEBUG botocore.credentials MainThread : Looking for credentials via: sso
+2023-08-14 21:50:27,275 DEBUG botocore.credentials MainThread : Looking for credentials via: shared-credentials-file
+2023-08-14 21:50:27,275 INFO botocore.credentials MainThread : Found credentials in shared credentials file: ~/.aws/credentials
+2023-08-14 21:50:27,275 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/endpoints.json
+2023-08-14 21:50:27,288 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/sdk-default-configuration.json
+2023-08-14 21:50:27,288 DEBUG botocore.hooks MainThread : Event choose-service-name: calling handler <function handle_service_name_alias at 0x102c942c0>
+2023-08-14 21:50:27,297 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/s3/2006-03-01/service-2.json
+2023-08-14 21:50:27,308 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/s3/2006-03-01/endpoint-rule-set-1.json.gz
+2023-08-14 21:50:27,309 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/partitions.json
+2023-08-14 21:50:27,310 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function add_generate_presigned_post at 0x102bd8900>
+2023-08-14 21:50:27,310 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function lazy_call.<locals>._handler at 0x102d4eac0>
+2023-08-14 21:50:27,317 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function add_generate_presigned_url at 0x102bd8680>
+2023-08-14 21:50:27,317 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: environment_service
+2023-08-14 21:50:27,317 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: environment_global
+2023-08-14 21:50:27,317 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: config_service
+2023-08-14 21:50:27,317 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: config_global
+2023-08-14 21:50:27,317 DEBUG botocore.configprovider MainThread : No configured endpoint found.
+2023-08-14 21:50:27,319 DEBUG botocore.endpoint MainThread : Setting s3 timeout as (60, 60)
+2023-08-14 21:50:27,319 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/_retry.json
+2023-08-14 21:50:27,320 DEBUG botocore.client MainThread : Registering retry handlers for service: s3
+2023-08-14 21:50:27,320 DEBUG botocore.utils MainThread : Registering S3 region redirector handler
+2023-08-14 21:50:27,346 WARNING werkzeug MainThread :  * Debugger is active!
+2023-08-14 21:50:27,351 INFO werkzeug MainThread :  * Debugger PIN: 711-142-473
+2023-08-14 21:50:48,020 INFO app Thread-4 (process_request_thread) : Entering GET /api/caregivers request
+2023-08-14 21:50:48,020 INFO app Thread-4 (process_request_thread) : Entering GET /api/caregivers request
+2023-08-14 21:50:48,021 DEBUG app Thread-4 (process_request_thread) : Handling GET /api/caregivers request
+2023-08-14 21:50:48,021 DEBUG app Thread-4 (process_request_thread) : Handling GET /api/caregivers request
+2023-08-14 21:50:48,051 DEBUG app Thread-4 (process_request_thread) : Fetched 23 caregivers from the database
+2023-08-14 21:50:48,051 DEBUG app Thread-4 (process_request_thread) : Fetched 23 caregivers from the database
+2023-08-14 21:50:48,052 DEBUG __main__ Thread-4 (process_request_thread) : Successfully processed caregivers data
+2023-08-14 21:50:48,055 INFO werkzeug Thread-4 (process_request_thread) : 127.0.0.1 - - [14/Aug/2023 21:50:48] "GET /api/caregivers HTTP/1.1" 200 -
+2023-08-14 21:51:58,752 INFO werkzeug MainThread :  * Detected change in '/Users/alexchen/react-app-backend/app.py', reloading
+2023-08-14 21:51:58,825 INFO werkzeug MainThread :  * Restarting with stat
+2023-08-14 21:51:59,054 DEBUG botocore.hooks MainThread : Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+2023-08-14 21:51:59,055 DEBUG botocore.hooks MainThread : Changing event name from before-call.apigateway to before-call.api-gateway
+2023-08-14 21:51:59,055 DEBUG botocore.hooks MainThread : Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+2023-08-14 21:51:59,055 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+2023-08-14 21:51:59,055 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+2023-08-14 21:51:59,056 DEBUG botocore.hooks MainThread : Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+2023-08-14 21:51:59,056 DEBUG botocore.hooks MainThread : Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+2023-08-14 21:51:59,057 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+2023-08-14 21:51:59,057 DEBUG botocore.hooks MainThread : Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+2023-08-14 21:51:59,057 DEBUG botocore.hooks MainThread : Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+2023-08-14 21:51:59,057 DEBUG botocore.hooks MainThread : Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+2023-08-14 21:51:59,062 DEBUG botocore.utils MainThread : IMDS ENDPOINT: http://169.254.169.254/
+2023-08-14 21:51:59,079 DEBUG botocore.credentials MainThread : Looking for credentials via: env
+2023-08-14 21:51:59,080 DEBUG botocore.credentials MainThread : Looking for credentials via: assume-role
+2023-08-14 21:51:59,080 DEBUG botocore.credentials MainThread : Looking for credentials via: assume-role-with-web-identity
+2023-08-14 21:51:59,080 DEBUG botocore.credentials MainThread : Looking for credentials via: sso
+2023-08-14 21:51:59,080 DEBUG botocore.credentials MainThread : Looking for credentials via: shared-credentials-file
+2023-08-14 21:51:59,080 INFO botocore.credentials MainThread : Found credentials in shared credentials file: ~/.aws/credentials
+2023-08-14 21:51:59,081 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/endpoints.json
+2023-08-14 21:51:59,092 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/sdk-default-configuration.json
+2023-08-14 21:51:59,092 DEBUG botocore.hooks MainThread : Event choose-service-name: calling handler <function handle_service_name_alias at 0x1031bc2c0>
+2023-08-14 21:51:59,118 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/s3/2006-03-01/service-2.json
+2023-08-14 21:51:59,130 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/s3/2006-03-01/endpoint-rule-set-1.json.gz
+2023-08-14 21:51:59,131 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/partitions.json
+2023-08-14 21:51:59,133 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function add_generate_presigned_post at 0x103100900>
+2023-08-14 21:51:59,133 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function lazy_call.<locals>._handler at 0x103276ac0>
+2023-08-14 21:51:59,145 DEBUG botocore.hooks MainThread : Event creating-client-class.s3: calling handler <function add_generate_presigned_url at 0x103100680>
+2023-08-14 21:51:59,145 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: environment_service
+2023-08-14 21:51:59,145 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: environment_global
+2023-08-14 21:51:59,145 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: config_service
+2023-08-14 21:51:59,145 DEBUG botocore.configprovider MainThread : Looking for endpoint for s3 via: config_global
+2023-08-14 21:51:59,145 DEBUG botocore.configprovider MainThread : No configured endpoint found.
+2023-08-14 21:51:59,162 DEBUG botocore.endpoint MainThread : Setting s3 timeout as (60, 60)
+2023-08-14 21:51:59,163 DEBUG botocore.loaders MainThread : Loading JSON file: /Users/alexchen/react-app-backend/venv/lib/python3.11/site-packages/botocore/data/_retry.json
+2023-08-14 21:51:59,163 DEBUG botocore.client MainThread : Registering retry handlers for service: s3
+2023-08-14 21:51:59,163 DEBUG botocore.utils MainThread : Registering S3 region redirector handler
+2023-08-14 21:51:59,313 WARNING werkzeug MainThread :  * Debugger is active!
+2023-08-14 21:51:59,319 INFO werkzeug MainThread :  * Debugger PIN: 711-142-473
+2023-08-14 21:52:05,400 INFO werkzeug MainThread :  * Detected change in '/Users/alexchen/react-app-backend/app.py', reloading
+2023-08-14 21:52:05,455 INFO werkzeug MainThread :  * Restarting with stat

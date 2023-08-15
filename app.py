@@ -11,7 +11,16 @@ import logging
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
 
+
 app = Flask(__name__)
+
+app.logger.setLevel(logging.DEBUG)
+
+# Adding a file handler to write Flask's log messages to the same file
+file_handler = logging.FileHandler('/home/ubuntu/Caregiver_backend/app.log')
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
+app.logger.addHandler(file_handler)
 
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -19,6 +28,7 @@ s3 = boto3.client('s3')
 
 @app.route('/status')
 def status():
+    app.logger.info('Status endpoint was called')
     return "Gunicorn is running!", 200
 
 
@@ -87,8 +97,8 @@ caregivers = [
 
 @app.route("/api/caregivers", methods=["GET"])
 def get_caregivers():
-    logger.info("Entering GET /api/caregivers request") 
-    logger.debug("Handling GET /api/caregivers request")
+    app.logger.info("---------------Entering GET /api/caregivers request") 
+    app.logger.debug("Handling GET /api/caregivers request")
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
@@ -97,13 +107,13 @@ def get_caregivers():
         # Fetch caregivers from the database
         cursor.execute("SELECT * FROM caregivers")
         rows = cursor.fetchall()
-        logger.debug(f"Fetched {len(rows)} caregivers from the database")
+        app.logger.debug(f"Fetched {len(rows)} caregivers from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
-            logger.warning("No caregivers found in the database")
+            app.logger.warning("No caregivers found in the database")
             return jsonify({"error": "Problem of fetching caregivers"}), 404
 
         # Format the data for JSON
