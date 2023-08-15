@@ -7,6 +7,8 @@ from werkzeug.utils import secure_filename
 import os
 from psycopg2.extras import DictCursor
 import logging
+from flask import make_response
+
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
@@ -127,7 +129,7 @@ caregivers = [
 
 @app.route("/api/caregivers", methods=["GET"])
 def get_caregivers():
-    app.logger.info("---------------Entering GET /api/caregivers request") 
+    app.logger.info("---------------Entering GET /api/caregivers request")
     app.logger.debug("Handling GET /api/caregivers request")
     try:
         # Connect to the PostgreSQL database
@@ -163,10 +165,15 @@ def get_caregivers():
         ]
 
         logger.debug("Successfully processed caregivers data")
-        return jsonify(caregivers)
+
+        response = make_response(jsonify(caregivers))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
     except Exception as e:
         logger.error("Error fetching caregivers", exc_info=True)
         return jsonify({"error": "Failed to fetch caregivers"}), 500
+
 
 
 @app.route("/api/caregivers/<int:caregiver_id>", methods=["GET"])
