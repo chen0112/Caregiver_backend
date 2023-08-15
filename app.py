@@ -220,7 +220,7 @@ def get_caregiver_detail(caregiver_id):
             "education": row["education"],
             "gender": row["gender"],
             "phone": row["phone"],
-            "imageUrl": row["imageurl"]
+            "imageurl": row["imageurl"]
         }
 
         return jsonify(caregiver)
@@ -241,7 +241,7 @@ def add_caregiver():
         cursor = conn.cursor()
 
         # Define the columns and values for the INSERT query
-        columns = ["name", "phone", "description", "imageUrl"]
+        columns = ["name", "phone", "description", "imageurl"]
 
         values = [data[field] for field in columns]
 
@@ -281,7 +281,7 @@ def add_caregiver():
             "education": data["education"],
             "gender": data["gender"],
             "years_of_experience": data["years_of_experience"],
-            "imageUrl": data["imageUrl"],
+            "imageurl": data["imageurl"],
         }
         return jsonify(new_caregiver), 201
    
