@@ -73,7 +73,11 @@ def get_all_caregivers():
         ]
 
         app.logger.debug("Successfully processed all caregivers data")
-        return jsonify(caregivers)
+        
+        response = make_response(jsonify(caregivers))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
     except Exception as e:
         logger.error("Error fetching all caregivers", exc_info=True)
         return jsonify({"error": "Failed to fetch all caregivers"}), 500
