@@ -87,6 +87,7 @@ caregivers = [
 
 @app.route("/api/caregivers", methods=["GET"])
 def get_caregivers():
+    logger.info("Entering GET /api/caregivers request") 
     logger.debug("Handling GET /api/caregivers request")
     try:
         # Connect to the PostgreSQL database
