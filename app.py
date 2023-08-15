@@ -157,7 +157,7 @@ def get_caregivers():
                 "education": row["education"],
                 "gender": row["gender"],
                 "phone": row["phone"],
-                "imageUrl": row["imageurl"]
+                "imageurl": row["imageurl"]
             }
             for row in rows
         ]
