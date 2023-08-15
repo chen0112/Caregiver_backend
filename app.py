@@ -281,7 +281,7 @@ def add_caregiver():
             "education": data["education"],
             "gender": data["gender"],
             "years_of_experience": data["years_of_experience"],
-            "imageUrl": data["imageurl"],
+            "imageUrl": data["imageUrl"],
         }
         return jsonify(new_caregiver), 201
    
