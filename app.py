@@ -56,6 +56,22 @@ def get_all_caregivers():
         # Directly convert the rows into JSON
         caregivers = [dict(row) for row in rows]
 
+        # Format the data for JSON
+        caregivers = [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "description": row["description"],
+                "years_of_experience": row["years_of_experience"],
+                "age": row["age"],
+                "education": row["education"],
+                "gender": row["gender"],
+                "phone": row["phone"],
+                "imageurl": row["imageurl"]
+            }
+            for row in rows
+        ]
+
         app.logger.debug("Successfully processed all caregivers data")
         return jsonify(caregivers)
     except Exception as e:
