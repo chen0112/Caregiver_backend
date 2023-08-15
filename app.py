@@ -192,7 +192,7 @@ def get_caregivers():
 
 
 
-@app.route("/api/caregivers/<int:caregiver_id>", methods=["GET"])
+@app.route("/api/all_caregivers/<int:caregiver_id>", methods=["GET"])
 def get_caregiver_detail(caregiver_id):
     try: 
         # Connect to the PostgreSQL database
@@ -231,7 +231,7 @@ def get_caregiver_detail(caregiver_id):
 
 
 
-@app.route("/api/caregivers", methods=["POST"])
+@app.route("/api/all_caregivers", methods=["POST"])
 def add_caregiver():
     try:
         data = request.get_json()
@@ -271,6 +271,7 @@ def add_caregiver():
         cursor.close()
 
         # Return the newly created caregiver data with the assigned ID
+        # imageUrl is possibly from const [imageUrl, setImageUrl] = useState<string | null>(null) in CaregiverForm.tsx
         new_caregiver = {
             "id": new_caregiver_id,
             "name": data["name"],
@@ -280,7 +281,7 @@ def add_caregiver():
             "education": data["education"],
             "gender": data["gender"],
             "years_of_experience": data["years_of_experience"],
-            "imageUrl": data["imageUrl"],
+            "imageUrl": data["imageurl"],
         }
         return jsonify(new_caregiver), 201
    
