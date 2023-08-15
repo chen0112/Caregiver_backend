@@ -79,7 +79,7 @@ def get_all_caregivers():
         response.headers['Pragma'] = 'no-cache'
         return response
     except Exception as e:
-        logger.error("Error fetching all caregivers", exc_info=True)
+        app.logger.error("Error fetching all caregivers", exc_info=True)
         return jsonify({"error": "Failed to fetch all caregivers"}), 500
 
 
