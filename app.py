@@ -31,6 +31,36 @@ def status():
     app.logger.info('Status endpoint was called')
     return "Gunicorn is running!", 200
 
+@app.route('/api/all_caregivers', methods=['GET'])
+def get_all_caregivers():
+    app.logger.info("---------------Entering GET /api/all_caregivers request")
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch caregivers from the database
+        cursor.execute("SELECT * FROM caregivers")
+        rows = cursor.fetchall()
+        app.logger.debug(f"Fetched {len(rows)} caregivers from the database")
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            app.logger.warning("No caregivers found in the database")
+            return jsonify({"error": "Problem of fetching caregivers"}), 404
+
+        # Directly convert the rows into JSON
+        caregivers = [dict(row) for row in rows]
+
+        app.logger.debug("Successfully processed all caregivers data")
+        return jsonify(caregivers)
+    except Exception as e:
+        logger.error("Error fetching all caregivers", exc_info=True)
+        return jsonify({"error": "Failed to fetch all caregivers"}), 500
+
+
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
