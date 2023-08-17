@@ -1,3 +1,4 @@
+import datetime
 from flask import Flask, g, request, jsonify
 from flask_cors import CORS
 import psycopg2
@@ -5,13 +6,17 @@ from psycopg2 import pool
 import boto3
 from werkzeug.utils import secure_filename
 import os
+from os import environ
 from psycopg2.extras import DictCursor
 import logging
 from flask import make_response
+from twilio.rest import Client
+import random
 
 
-logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
+logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
+# home/ubuntu/Caregiver_backend/
 
 
 app = Flask(__name__)
@@ -19,7 +24,7 @@ app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 
 # Adding a file handler to write Flask's log messages to the same file
-file_handler = logging.FileHandler('/home/ubuntu/Caregiver_backend/app.log')
+file_handler = logging.FileHandler('app.log')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
 app.logger.addHandler(file_handler)
@@ -27,6 +32,83 @@ app.logger.addHandler(file_handler)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 s3 = boto3.client('s3')
+
+def generate_otp():
+    return random.randint(100000, 999999)
+
+
+TWILIO_ACCOUNT_SID = environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = environ.get('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = environ.get('TWILIO_PHONE_NUMBER')
+
+twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+@app.route('/api/send_otp', methods=['POST'])
+def send_otp():
+    try:
+        phone = request.json.get('phone')
+        otp = generate_otp()
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Insert or update the OTP and timestamp for the corresponding phone number in the new table
+        cursor.execute("INSERT INTO otp_verification (phone, otp) VALUES (%s, %s) ON CONFLICT (phone) DO UPDATE SET otp = %s, otp_timestamp = CURRENT_TIMESTAMP", (phone, otp, otp))
+
+        # Commit the changes
+        conn.commit()
+
+        # Close the connection
+        cursor.close()
+
+        message = twilio_client.messages.create(
+            body=f"Your verification code is {otp}",
+            from_=TWILIO_PHONE_NUMBER,
+            to=phone
+        )
+
+        return jsonify({"success": "OTP sent successfully"}), 200
+    except Exception as e:
+        logger.error(f"Error sending OTP: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to send OTP"}), 500
+
+
+@app.route('/api/verify_otp', methods=['POST'])
+def verify_otp():
+    try:
+        phone = request.json.get('phone')
+        received_otp = request.json.get('otp')
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch OTP and timestamp from the new otp_verification table for the given phone number
+        cursor.execute("SELECT otp, otp_timestamp FROM otp_verification WHERE phone = %s", (phone,))
+        result = cursor.fetchone()
+
+
+        if not result:
+            app.logger.warning(f"No OTP found for phone number {phone}")
+            return jsonify({"error": "Invalid phone number or OTP"}), 404
+
+        stored_otp, otp_timestamp = result['otp'], result['otp_timestamp']
+
+        # Close the connection
+        cursor.close()
+
+        # Verify if the OTP matches and is within a valid time frame (e.g., 5 minutes)
+        if stored_otp == received_otp and (datetime.datetime.now() - otp_timestamp).total_seconds() < 300:
+            return jsonify({"success": "OTP verified successfully"}), 200
+        else:
+            return jsonify({"error": "Invalid or expired OTP"}), 400
+
+    except Exception as e:
+        logger.error(f"Error verifying OTP: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to verify OTP"}), 500
+
+
 
 @app.route('/status')
 def status():
