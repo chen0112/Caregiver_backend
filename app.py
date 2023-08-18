@@ -54,7 +54,9 @@ def register():
         # Close the connection
         cursor.close()
 
-        return jsonify({"success": True}), 200
+        response = jsonify({"success": True})
+        response.headers['Content-Type'] = 'application/json'
+        return response, 200
     except Exception as e:
         logger.error(f"Error registering user: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to register"}), 500
