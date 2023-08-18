@@ -1,4 +1,3 @@
-import datetime
 from flask import Flask, g, request, jsonify
 from flask_cors import CORS
 import psycopg2
@@ -6,15 +5,12 @@ from psycopg2 import pool
 import boto3
 from werkzeug.utils import secure_filename
 import os
-from os import environ
 from psycopg2.extras import DictCursor
 import logging
 from flask import make_response
-from werkzeug.security import generate_password_hash
 
 
-
-logging.basicConfig(filename='home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
+logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -23,7 +19,7 @@ app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 
 # Adding a file handler to write Flask's log messages to the same file
-file_handler = logging.FileHandler('home/ubuntu/Caregiver_backend/app.log')
+file_handler = logging.FileHandler('/home/ubuntu/Caregiver_backend/app.log')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
 app.logger.addHandler(file_handler)
@@ -31,38 +27,6 @@ app.logger.addHandler(file_handler)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 s3 = boto3.client('s3')
-
-@app.route('/api/register', methods=['POST'])
-def register():
-    try:
-        phone = request.json.get('phone')
-        passcode = request.json.get('passcode')
-
-        # Hash the passcode
-        hashed_passcode = generate_password_hash(passcode, method='pbkdf2:sha256', salt_length=10)
-
-        # Connect to the PostgreSQL database
-        conn = get_db()
-        cursor = conn.cursor()
-
-        # Insert the user's phone and passcode into the accounts table
-        cursor.execute("INSERT INTO accounts (phone, passcode) VALUES (%s, %s)", (phone, hashed_passcode))
-
-        # Commit the changes
-        conn.commit()
-
-        # Close the connection
-        cursor.close()
-
-        response = jsonify({"success": True})
-        response.headers['Content-Type'] = 'application/json'
-        return response, 200
-    except Exception as e:
-        logger.error(f"Error registering user: {str(e)}", exc_info=True)
-        return jsonify({"error": "Failed to register"}), 500
-
-
-
 
 @app.route('/status')
 def status():
