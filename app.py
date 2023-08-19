@@ -234,7 +234,6 @@ def get_caregiver_detail(caregiver_id):
 
 
 
-
 @app.route("/api/all_caregivers", methods=["POST"])
 def add_caregiver():
     try:
