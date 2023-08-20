@@ -70,7 +70,7 @@ def register():
         return jsonify({"success": True, "message": "创建账号成功!", "id": new_user_id}), 201
 
     except Exception as e:
-        print(f"Error registering user: {str(e)}", exc_info=True)
+        app.logger.info(f"Error registering user: {str(e)}", exc_info=True)
         return jsonify({"error": "创建失败！"}), 500
 
     
