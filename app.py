@@ -45,10 +45,7 @@ def register():
 
         # Extract phone and passcode
         phone = data["phone"]
-        passcode = data["passcode"]
-
-        # Hash the passcode using bcrypt
-        hashed_passcode = generate_password_hash(passcode, method='pbkdf2:sha256', salt_length=8)
+        passcode = data["passcode"]  # this is already hashed from the frontend
 
         # Connect to the PostgreSQL database
         conn = get_db()
@@ -62,7 +59,7 @@ def register():
 
         # Insert the new account into the database
         createtime = datetime.datetime.now()
-        cursor.execute("INSERT INTO accounts (phone, passcode, createtime) VALUES (%s, %s, %s) RETURNING id", (phone, hashed_passcode, createtime))
+        cursor.execute("INSERT INTO accounts (phone, passcode, createtime) VALUES (%s, %s, %s) RETURNING id", (phone, passcode, createtime))
         new_user_id = cursor.fetchone()[0]
 
         # Commit the changes and close the connection
@@ -75,6 +72,7 @@ def register():
     except Exception as e:
         print(f"Error registering user: {str(e)}", exc_info=True)
         return jsonify({"error": "创建失败！"}), 500
+
     
 
 @app.route('/api/all_caregivers', methods=['GET'])
