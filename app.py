@@ -8,6 +8,9 @@ import os
 from psycopg2.extras import DictCursor
 import logging
 from flask import make_response
+import psycopg2.extras
+from werkzeug.security import check_password_hash, generate_password_hash
+import datetime
 
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
@@ -32,6 +35,47 @@ s3 = boto3.client('s3')
 def status():
     app.logger.info('Status endpoint was called')
     return "Gunicorn is running!", 200
+
+
+@app.route("/api/register", methods=["POST"])
+def register():
+    try:
+        # Get the JSON data from the request
+        data = request.get_json()
+
+        # Extract phone and passcode
+        phone = data["phone"]
+        passcode = data["passcode"]
+
+        # Hash the passcode using bcrypt
+        hashed_passcode = generate_password_hash(passcode, method='pbkdf2:sha256', salt_length=8)
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Check if the phone number already exists in the accounts table
+        cursor.execute("SELECT * FROM accounts WHERE phone = %s", (phone,))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            return jsonify({"error": "手机号已被注册"}), 400
+
+        # Insert the new account into the database
+        createtime = datetime.datetime.now()
+        cursor.execute("INSERT INTO accounts (phone, passcode, createtime) VALUES (%s, %s, %s) RETURNING id", (phone, hashed_passcode, createtime))
+        new_user_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Return success response
+        return jsonify({"success": True, "message": "创建账号成功!", "id": new_user_id}), 201
+
+    except Exception as e:
+        print(f"Error registering user: {str(e)}", exc_info=True)
+        return jsonify({"error": "创建失败！"}), 500
+    
 
 @app.route('/api/all_caregivers', methods=['GET'])
 def get_all_caregivers():
