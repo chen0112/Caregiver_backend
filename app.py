@@ -80,7 +80,7 @@ def sign_in():
     phone = request.json['phone']
     passcode = request.json['passcode']
 
-    conn = psycopg2.connect("...") # Connection details
+    conn = get_db() # Connection details
     cursor = conn.cursor()
 
     # Fetch the hashed passcode from the database
