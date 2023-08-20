@@ -11,6 +11,7 @@ from flask import make_response
 import psycopg2.extras
 from werkzeug.security import check_password_hash, generate_password_hash
 import datetime
+import bcrypt
 
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
@@ -72,6 +73,29 @@ def register():
     except Exception as e:
         app.logger.info(f"Error registering user: {str(e)}", exc_info=True)
         return jsonify({"error": "创建失败！"}), 500
+    
+    
+@app.route('/api/signin', methods=['POST'])
+def sign_in():
+    phone = request.json['phone']
+    passcode = request.json['passcode']
+
+    conn = psycopg2.connect("...") # Connection details
+    cursor = conn.cursor()
+
+    # Fetch the hashed passcode from the database
+    cursor.execute("SELECT passcode FROM accounts WHERE phone = %s", (phone,))
+    result = cursor.fetchone()
+
+    if result:
+        hashed_passcode = result[0]
+        # Verify the hashed passcode
+        if bcrypt.checkpw(passcode.encode('utf-8'), hashed_passcode.encode('utf-8')):
+            return jsonify(success=True), 200
+        else:
+            return jsonify(success=False, message='密码不正确'), 401
+    else:
+        return jsonify(success=False, message='电话号码不正确'), 404
 
     
 
