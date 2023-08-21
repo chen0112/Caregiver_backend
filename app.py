@@ -227,6 +227,9 @@ def get_caregivers():
         rows = cursor.fetchall()
         app.logger.debug(f"Fetched {len(rows)} caregivers from the database")
 
+         # Log the actual rows fetched for debugging purposes
+        app.logger.debug(f"Rows fetched: {rows}")
+
         # Close the connection
         cursor.close()
 
