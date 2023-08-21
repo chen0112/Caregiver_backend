@@ -223,7 +223,7 @@ def get_caregivers():
         cursor = conn.cursor(cursor_factory=DictCursor)
 
         # Fetch caregivers from the database
-        cursor.execute("SELECT * FROM caregivers")
+        cursor.execute("SELECT * FROM caregivers ORDER BY id DESC")
         rows = cursor.fetchall()
         app.logger.debug(f"Fetched {len(rows)} caregivers from the database")
 
