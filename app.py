@@ -108,7 +108,7 @@ def get_all_caregivers():
         cursor = conn.cursor(cursor_factory=DictCursor)
 
         # Fetch caregivers from the database
-        cursor.execute("SELECT * FROM caregivers")
+        cursor.execute("SELECT * FROM caregivers ORDER BY id DESC")
         rows = cursor.fetchall()
         app.logger.debug(f"Fetched {len(rows)} caregivers from the database")
 
@@ -211,57 +211,6 @@ caregivers = [
     {"id": 2, "name": "Jane Smith", "description": "Compassionate nanny"},
     # Add more caregivers as needed
 ]
-
-
-@app.route("/api/caregivers", methods=["GET"])
-def get_caregivers():
-    app.logger.info("---------------Entering GET /api/caregivers request")
-    app.logger.debug("Handling GET /api/caregivers request")
-    try:
-        # Connect to the PostgreSQL database
-        conn = get_db()
-        cursor = conn.cursor(cursor_factory=DictCursor)
-
-        # Fetch caregivers from the database
-        cursor.execute("SELECT * FROM caregivers ORDER BY id DESC")
-        rows = cursor.fetchall()
-        app.logger.debug(f"Fetched {len(rows)} caregivers from the database")
-
-         # Log the actual rows fetched for debugging purposes
-        app.logger.debug(f"Rows fetched: {rows}")
-
-        # Close the connection
-        cursor.close()
-
-        if not rows:
-            app.logger.warning("No caregivers found in the database")
-            return jsonify({"error": "Problem of fetching caregivers"}), 404
-
-        # Format the data for JSON
-        caregivers = [
-            {
-                "id": row["id"],
-                "name": row["name"],
-                "description": row["description"],
-                "years_of_experience": row["years_of_experience"],
-                "age": row["age"],
-                "education": row["education"],
-                "gender": row["gender"],
-                "phone": row["phone"],
-                "imageurl": row["imageurl"]
-            }
-            for row in rows
-        ]
-
-        logger.debug("Successfully processed caregivers data")
-
-        response = make_response(jsonify(caregivers))
-        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
-        response.headers['Pragma'] = 'no-cache'
-        return response
-    except Exception as e:
-        logger.error("Error fetching caregivers", exc_info=True)
-        return jsonify({"error": "Failed to fetch caregivers"}), 500
 
 
 
