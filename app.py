@@ -136,8 +136,39 @@ def get_mycaregivers(phone):
 
         return jsonify(caregivers)
     except Exception as e:
-        logger.error(f"Error fetching caregivers for phone {phone}", exc_info=True)
+        app.logger.error(f"Error fetching caregivers for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch caregivers"}), 500
+    
+    
+@app.route("/api/mycaregiver/<int:id>", methods=["PUT"])
+def update_caregiver(id):
+    try:
+        data = request.get_json()
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Define the columns and values for the UPDATE query
+        columns = ["name", "description"]
+        values = [data[field] for field in columns]
+
+        # Construct the UPDATE query
+        update_query = "UPDATE caregivers SET " + ', '.join([f"{col} = %s" for col in columns]) + f" WHERE id = {id}"
+
+        # Execute the UPDATE query with the values
+        cursor.execute(update_query, values)
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        return jsonify({"success": "Caregiver updated"}), 200
+
+    except Exception as e:
+        app.logger.error(f"Error updating caregiver: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to update caregiver"}), 500
+
     
 
 @app.route('/api/all_caregivers', methods=['GET'])
