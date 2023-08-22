@@ -91,12 +91,53 @@ def sign_in():
         hashed_passcode = result[0]
         # Verify the hashed passcode
         if bcrypt.checkpw(passcode.encode('utf-8'), hashed_passcode.encode('utf-8')):
-            return jsonify(success=True), 200
+            # Check if the user has posted ads before
+            cursor.execute("SELECT COUNT(*) FROM caregivers WHERE phone = %s", (phone,))
+            has_posted_ads = cursor.fetchone()[0] > 0
+
+            return jsonify(success=True, hasPostedAds=has_posted_ads), 200
         else:
             return jsonify(success=False, message='密码不正确'), 401
     else:
         return jsonify(success=False, message='电话号码不正确'), 404
 
+
+@app.route("/api/mycaregiver/<phone>", methods=["GET"])
+def get_mycaregivers(phone):
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch the caregivers related to the phone number
+        cursor.execute("SELECT * FROM caregivers WHERE phone = %s", (phone,))
+        rows = cursor.fetchall()
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            return jsonify({"error": "Caregivers not found"}), 404
+
+        caregivers = [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "description": row["description"],
+                "years_of_experience": row["years_of_experience"],
+                "age": row["age"],
+                "education": row["education"],
+                "gender": row["gender"],
+                "phone": row["phone"],
+                "imageurl": row["imageurl"]
+            }
+            for row in rows
+        ]
+
+        return jsonify(caregivers)
+    except Exception as e:
+        logger.error(f"Error fetching caregivers for phone {phone}", exc_info=True)
+        return jsonify({"error": "Failed to fetch caregivers"}), 500
     
 
 @app.route('/api/all_caregivers', methods=['GET'])
