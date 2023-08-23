@@ -159,6 +159,10 @@ def update_caregiver(id):
         # Execute the UPDATE query with the values
         cursor.execute(update_query, values)
 
+        app.logger.info(f"Received data: {data}")
+        app.logger.info(f"Executing query: {update_query}")
+
+
         # Commit the changes and close the connection
         conn.commit()
         cursor.close()
