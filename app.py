@@ -37,6 +37,10 @@ def status():
     app.logger.info('Status endpoint was called')
     return "Gunicorn is running!", 200
 
+@app.route("/test_put", methods=["PUT"])
+def test_put():
+    return jsonify({"success": "PUT request successful"}), 200
+
 
 @app.route("/api/register", methods=["POST"])
 def register():
@@ -142,6 +146,7 @@ def get_mycaregivers(phone):
     
 @app.route("/api/mycaregiver/<int:id>", methods=["PUT"])
 def update_caregiver(id):
+    app.logger.debug(f"Entering update_caregiver for id {id}")
     try:
         data = request.get_json()
 
