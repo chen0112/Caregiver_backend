@@ -172,7 +172,7 @@ def update_caregiver(id):
         conn.commit()
         cursor.close()
 
-        return jsonify({"success": "Caregiver updated"}), 200
+        return jsonify({"success": "更新成功"}), 200
 
     except Exception as e:
         app.logger.error(f"Error updating caregiver: {str(e)}", exc_info=True)
