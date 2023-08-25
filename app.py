@@ -392,6 +392,69 @@ def add_caregiver():
         return jsonify({"error": "Failed to add caregiver"}), 500
 
 
+@app.route("/api/all_careneeders", methods=["POST"])
+def add_careneeder():
+    try:
+        data = request.get_json()
+
+        # Validate mandatory fields
+        for field in ["name", "phone"]:
+            if field not in data:
+                return jsonify({"error": f"{field} is required"}), 400
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Define the mandatory columns and values for the INSERT query
+        mandatory_columns = ["name", "phone", "imageurl"]
+        values = [data[field] for field in mandatory_columns]
+
+        # Define optional fields and include them in columns and values if they are present
+        optional_fields = [
+            "live_in_care", "live_out_care", "domestic_work", "meal_preparation",
+            "companionship", "washing_dressing", "nursing_health_care",
+            "mobility_support", "transportation", "errands_shopping"
+        ]
+
+        for field in optional_fields:
+            if field in data:
+                mandatory_columns.append(field)
+                values.append(data[field])
+            else:
+                # If the optional field is missing, set to NULL
+                mandatory_columns.append(field)
+                values.append(None)
+
+        # Construct the INSERT query
+        insert_query = f"INSERT INTO careneeder ({', '.join(mandatory_columns)}) VALUES ({', '.join(['%s'] * len(mandatory_columns))}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_careneeder_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the Careneeder interface
+        new_careneeder = {
+            "id": new_careneeder_id,
+            "name": data["name"],
+            "phone": data["phone"],
+            "imageurl": data["imageurl"]
+        }
+
+        # Include optional fields in the return object if they exist
+        for field in optional_fields:
+            new_careneeder[field] = data.get(field, None)
+
+        return jsonify(new_careneeder), 201
+
+    except Exception as e:
+        app.logger.error(f"Error adding careneeder: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add careneeder"}), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True)
