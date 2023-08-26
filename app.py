@@ -12,6 +12,7 @@ import psycopg2.extras
 from werkzeug.security import check_password_hash, generate_password_hash
 import datetime
 import bcrypt
+import json
 
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
@@ -407,8 +408,10 @@ def add_careneeder():
         cursor = conn.cursor()
 
         # Define the mandatory columns and values for the INSERT query
-        mandatory_columns = ["name", "phone", "imageurl"]
+        mandatory_columns = ["name", "phone", "imageurl", "location"]
         values = [data[field] for field in mandatory_columns]
+
+        
 
         # Define optional fields and include them in columns and values if they are present
         optional_fields = [
@@ -424,7 +427,7 @@ def add_careneeder():
             else:
                 # If the optional field is missing, set to NULL
                 mandatory_columns.append(field)
-                values.append(None)
+                values.append(None)      
 
         # Construct the INSERT query
         insert_query = f"INSERT INTO careneeder ({', '.join(mandatory_columns)}) VALUES ({', '.join(['%s'] * len(mandatory_columns))}) RETURNING id"
@@ -442,7 +445,8 @@ def add_careneeder():
             "id": new_careneeder_id,
             "name": data["name"],
             "phone": data["phone"],
-            "imageurl": data["imageurl"]
+            "imageurl": data["imageurl"],
+            "location": data["location"]
         }
 
         # Include optional fields in the return object if they exist
