@@ -15,7 +15,8 @@ import bcrypt
 import json
 
 
-logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
+logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -26,17 +27,20 @@ app.logger.setLevel(logging.DEBUG)
 # Adding a file handler to write Flask's log messages to the same file
 file_handler = logging.FileHandler('/home/ubuntu/Caregiver_backend/app.log')
 file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
+file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
 app.logger.addHandler(file_handler)
 
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 s3 = boto3.client('s3')
 
+
 @app.route('/status')
 def status():
     app.logger.info('Status endpoint was called')
     return "Gunicorn is running!", 200
+
 
 @app.route("/test_put", methods=["PUT"])
 def test_put():
@@ -65,7 +69,8 @@ def register():
 
         # Insert the new account into the database
         createtime = datetime.datetime.now()
-        cursor.execute("INSERT INTO accounts (phone, passcode, createtime) VALUES (%s, %s, %s) RETURNING id", (phone, passcode, createtime))
+        cursor.execute("INSERT INTO accounts (phone, passcode, createtime) VALUES (%s, %s, %s) RETURNING id",
+                       (phone, passcode, createtime))
         new_user_id = cursor.fetchone()[0]
 
         # Commit the changes and close the connection
@@ -78,14 +83,14 @@ def register():
     except Exception as e:
         app.logger.info(f"Error registering user: {str(e)}", exc_info=True)
         return jsonify({"error": "创建失败！"}), 500
-    
-    
+
+
 @app.route('/api/signin', methods=['POST'])
 def sign_in():
     phone = request.json['phone']
     passcode = request.json['passcode']
 
-    conn = get_db() # Connection details
+    conn = get_db()  # Connection details
     cursor = conn.cursor()
 
     # Fetch the hashed passcode from the database
@@ -97,7 +102,8 @@ def sign_in():
         # Verify the hashed passcode
         if bcrypt.checkpw(passcode.encode('utf-8'), hashed_passcode.encode('utf-8')):
             # Check if the user has posted ads before
-            cursor.execute("SELECT COUNT(*) FROM caregivers WHERE phone = %s", (phone,))
+            cursor.execute(
+                "SELECT COUNT(*) FROM caregivers WHERE phone = %s", (phone,))
             has_posted_ads = cursor.fetchone()[0] > 0
 
             return jsonify(success=True, hasPostedAds=has_posted_ads), 200
@@ -141,10 +147,11 @@ def get_mycaregivers(phone):
 
         return jsonify(caregivers)
     except Exception as e:
-        app.logger.error(f"Error fetching caregivers for phone {phone}", exc_info=True)
+        app.logger.error(
+            f"Error fetching caregivers for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch caregivers"}), 500
-    
-    
+
+
 @app.route("/api/mycaregiver/<int:id>", methods=["PUT"])
 def update_caregiver(id):
     app.logger.debug(f"Entering update_caregiver for id {id}")
@@ -160,14 +167,14 @@ def update_caregiver(id):
         values = [data[field] for field in columns]
 
         # Construct the UPDATE query
-        update_query = "UPDATE caregivers SET " + ', '.join([f"{col} = %s" for col in columns]) + f" WHERE id = {id}"
+        update_query = "UPDATE caregivers SET " + \
+            ', '.join([f"{col} = %s" for col in columns]) + f" WHERE id = {id}"
 
         # Execute the UPDATE query with the values
         cursor.execute(update_query, values)
 
         app.logger.info(f"Received data: {data}")
         app.logger.info(f"Executing query: {update_query}")
-
 
         # Commit the changes and close the connection
         conn.commit()
@@ -179,7 +186,6 @@ def update_caregiver(id):
         app.logger.error(f"Error updating caregiver: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update caregiver"}), 500
 
-    
 
 @app.route('/api/all_caregivers', methods=['GET'])
 def get_all_caregivers():
@@ -221,7 +227,7 @@ def get_all_caregivers():
         ]
 
         app.logger.debug("Successfully processed all caregivers data")
-        
+
         response = make_response(jsonify(caregivers))
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
         response.headers['Pragma'] = 'no-cache'
@@ -229,7 +235,6 @@ def get_all_caregivers():
     except Exception as e:
         app.logger.error("Error fetching all caregivers", exc_info=True)
         return jsonify({"error": "Failed to fetch all caregivers"}), 500
-
 
 
 @app.route('/api/upload', methods=['POST'])
@@ -295,16 +300,16 @@ caregivers = [
 ]
 
 
-
 @app.route("/api/all_caregivers/<int:caregiver_id>", methods=["GET"])
 def get_caregiver_detail(caregiver_id):
-    try: 
+    try:
         # Connect to the PostgreSQL database
         conn = get_db()
         cursor = conn.cursor(cursor_factory=DictCursor)
 
         # Fetch the specific caregiver from the database using the id
-        cursor.execute("SELECT * FROM caregivers WHERE id = %s", (caregiver_id,))
+        cursor.execute("SELECT * FROM caregivers WHERE id = %s",
+                       (caregiver_id,))
         row = cursor.fetchone()
 
         # Close the connection
@@ -329,9 +334,9 @@ def get_caregiver_detail(caregiver_id):
 
         return jsonify(caregiver)
     except Exception as e:
-        logger.error(f"Error fetching caregiver detail for id {caregiver_id}", exc_info=True)
+        logger.error(
+            f"Error fetching caregiver detail for id {caregiver_id}", exc_info=True)
         return jsonify({"error": "Failed to fetch caregiver detail"}), 500
-
 
 
 @app.route("/api/all_caregivers", methods=["POST"])
@@ -387,7 +392,7 @@ def add_caregiver():
             "imageurl": data["imageurl"],
         }
         return jsonify(new_caregiver), 201
-   
+
     except Exception as e:
         logger.error(f"Error adding caregiver: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add caregiver"}), 500
@@ -409,9 +414,8 @@ def add_careneeder():
 
         # Define the mandatory columns and values for the INSERT query
         mandatory_columns = ["name", "phone", "imageurl", "location"]
-        values = [data[field] for field in mandatory_columns]
-
-        
+        values = [data[field] if field != 'location' else json.dumps(
+            data[field]) for field in mandatory_columns]
 
         # Define optional fields and include them in columns and values if they are present
         optional_fields = [
@@ -425,9 +429,8 @@ def add_careneeder():
                 mandatory_columns.append(field)
                 values.append(data[field])
             else:
-                # If the optional field is missing, set to NULL
                 mandatory_columns.append(field)
-                values.append(None)      
+                values.append(None)
 
         # Construct the INSERT query
         insert_query = f"INSERT INTO careneeder ({', '.join(mandatory_columns)}) VALUES ({', '.join(['%s'] * len(mandatory_columns))}) RETURNING id"
@@ -455,9 +458,14 @@ def add_careneeder():
 
         return jsonify(new_careneeder), 201
 
-    except Exception as e:
+    except Exception as e:  # Could also catch specific exceptions like psycopg2.DatabaseError
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
         app.logger.error(f"Error adding careneeder: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add careneeder"}), 500
+    finally:
+        if conn:
+            conn.close()  # Ensure that the connection is closed or returned to the pool
 
 
 if __name__ == "__main__":
