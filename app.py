@@ -348,27 +348,27 @@ def add_caregiver():
         conn = get_db()
         cursor = conn.cursor()
 
-        # Define the columns and values for the INSERT query
-        columns = ["name", "phone", "description", "imageurl", "location"]
-
-        values = [data[field] for field in columns]
+        # Define the mandatory columns and values for the INSERT query
+        mandatory_columns = ["name", "phone", "imageurl", "location"]
+        values = [data[field] if field != 'location' else json.dumps(
+            data[field]) for field in mandatory_columns]
 
         # Optional fields: yearsOfExperience, age, education, gender
         # Add them to the INSERT query only if they are present in the data
         optional_fields = ["years_of_experience", "age", "education", "gender"]
         for field in optional_fields:
             if field in data:
-                columns.append(field)
+                mandatory_columns.append(field)
                 values.append(data[field])
             else:
                 # If the optional field is missing, set a default value or NULL
                 # For example, set the yearsOfExperience to NULL
                 # You can customize the default values as needed
-                columns.append(field)
+                mandatory_columns.append(field)
                 values.append(None)
 
         # Construct the INSERT query with the appropriate number of placeholders
-        insert_query = f"INSERT INTO caregivers ({', '.join(columns)}) VALUES ({', '.join(['%s'] * len(columns))}) RETURNING id"
+        insert_query = f"INSERT INTO caregivers ({', '.join(mandatory_columns)}) VALUES ({', '.join(['%s'] * len(mandatory_columns))}) RETURNING id"
 
         # Execute the INSERT query with the values
         cursor.execute(insert_query, values)
@@ -390,7 +390,7 @@ def add_caregiver():
             "gender": data["gender"],
             "years_of_experience": data["years_of_experience"],
             "imageurl": data["imageurl"],
-            "location" : data["location"]
+            "location": data["location"]
         }
         return jsonify(new_caregiver), 201
 
