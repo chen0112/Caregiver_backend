@@ -140,7 +140,8 @@ def get_mycaregivers(phone):
                 "education": row["education"],
                 "gender": row["gender"],
                 "phone": row["phone"],
-                "imageurl": row["imageurl"]
+                "imageurl": row["imageurl"],
+                "location": row["location"]
             }
             for row in rows
         ]
@@ -221,7 +222,8 @@ def get_all_caregivers():
                 "education": row["education"],
                 "gender": row["gender"],
                 "phone": row["phone"],
-                "imageurl": row["imageurl"]
+                "imageurl": row["imageurl"],
+                "location": row["location"]
             }
             for row in rows
         ]
@@ -329,7 +331,8 @@ def get_caregiver_detail(caregiver_id):
             "education": row["education"],
             "gender": row["gender"],
             "phone": row["phone"],
-            "imageurl": row["imageurl"]
+            "imageurl": row["imageurl"],
+            "location": row["location"]
         }
 
         return jsonify(caregiver)
