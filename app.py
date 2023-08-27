@@ -176,6 +176,9 @@ def update_caregiver(id):
             else:
                  values.append(value)
 
+        app.logger.debug(f"Serialized location: {json.dumps(value)}")
+        app.logger.debug(f"Prepared values for SQL update: {values}")       
+
         # Construct the UPDATE query
         update_query = "UPDATE caregivers SET " + \
             ', '.join([f"{col} = %s" for col in columns]) + f" WHERE id = {id}"
