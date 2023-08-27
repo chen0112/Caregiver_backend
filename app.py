@@ -171,10 +171,10 @@ def update_caregiver(id):
         
         for field in columns:
             value = data.get(field, None)
-            if field == 'location' and isinstance(value, dict):
+            if field == 'location' and isinstance(value, list):
                 values.append(json.dumps(value))  # Serialize dict to JSON string
             else:
-                 values.append(value)
+                 values.append(value)        
 
         app.logger.debug(f"Serialized location: {json.dumps(value)}")
         app.logger.debug(f"Prepared values for SQL update: {values}")       
