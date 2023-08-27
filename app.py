@@ -167,7 +167,13 @@ def update_caregiver(id):
         # Added location to the list
         columns = ["name", "description", "location"]
         # Using .get() to avoid KeyError
-        values = [data.get(field, None) for field in columns]
+        values = []
+        
+        for field in columns:
+            if field == 'location' and isinstance(data.get(field, None), dict):
+                values.append(json.dumps(data.get(field, None)))  # Serialize dict to JSON string
+        else:
+            values.append(data.get(field, None))
 
         # Construct the UPDATE query
         update_query = "UPDATE caregivers SET " + \
