@@ -164,8 +164,10 @@ def update_caregiver(id):
         cursor = conn.cursor()
 
         # Define the columns and values for the UPDATE query
-        columns = ["name", "description"]
-        values = [data[field] for field in columns]
+        # Added location to the list
+        columns = ["name", "description", "location"]
+        # Using .get() to avoid KeyError
+        values = [data.get(field, None) for field in columns]
 
         # Construct the UPDATE query
         update_query = "UPDATE caregivers SET " + \
