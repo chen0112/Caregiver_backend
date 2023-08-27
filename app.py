@@ -170,10 +170,11 @@ def update_caregiver(id):
         values = []
         
         for field in columns:
-            if field == 'location' and isinstance(data.get(field, None), dict):
-                values.append(json.dumps(data.get(field, None)))  # Serialize dict to JSON string
+            value = data.get(field, None)
+            if field == 'location' and isinstance(value, dict):
+                values.append(json.dumps(value))  # Serialize dict to JSON string
             else:
-                values.append(data.get(field, None))
+                 values.append(value)
 
         # Construct the UPDATE query
         update_query = "UPDATE caregivers SET " + \
