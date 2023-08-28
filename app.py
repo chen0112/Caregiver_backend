@@ -484,5 +484,62 @@ def add_careneeder():
             conn.close()  # Ensure that the connection is closed or returned to the pool
 
 
+@app.route('/api/all_careneeders', methods=['GET'])
+def get_all_careneeders():
+    app.logger.info("---------------Entering GET /api/all_careneeders request")
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch careneeders from the database
+        cursor.execute("SELECT * FROM careneeder ORDER BY id DESC")
+        rows = cursor.fetchall()
+        app.logger.debug(f"Fetched {len(rows)} careneeders from the database")
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            app.logger.warning("No careneeders found in the database")
+            return jsonify({"error": "Problem of fetching careneeders"}), 404
+
+        # Directly convert the rows into JSON
+        careneeders = [dict(row) for row in rows]
+
+        # Format the data for JSON
+        careneeders = [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "phone": row["phone"],
+                "imageurl": row["imageurl"],
+                "live_in_care": row["live_in_care"],
+                "live_out_care": row["live_out_care"],
+                "domestic_work": row["domestic_work"],
+                "meal_preparation": row["meal_preparation"],
+                "companionship": row["companionship"],
+                "washing_dressing": row["washing_dressing"],
+                "nursing_health_care": row["nursing_health_care"],
+                "mobility_support": row["mobility_support"],
+                "transportation": row["transportation"],
+                "errands_shopping": row["errands_shopping"],
+                "location": row["location"]
+            }
+            for row in rows
+        ]
+
+        app.logger.debug("Successfully processed all careneeders data")
+
+        response = make_response(jsonify(careneeders))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+    except Exception as e:
+        app.logger.error("Error fetching all careneeders", exc_info=True)
+        return jsonify({"error": "Failed to fetch all careneeders"}), 500
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)
