@@ -538,6 +538,52 @@ def get_all_careneeders():
     except Exception as e:
         app.logger.error("Error fetching all careneeders", exc_info=True)
         return jsonify({"error": "Failed to fetch all careneeders"}), 500
+    
+
+@app.route("/api/all_careneeders/<int:careneeder_id>", methods=["GET"])
+def get_careneeder_detail(careneeder_id):
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch the specific careneeder from the database using the id
+        cursor.execute("SELECT * FROM careneeder WHERE id = %s",
+                       (careneeder_id,))
+        row = cursor.fetchone()
+
+        # Close the connection
+        cursor.close()
+
+        # Check if a careneeder with the given id exists
+        if not row:
+            return jsonify({"error": "Careneeder not found"}), 404
+
+        # Format the data for JSON
+        careneeder = {
+            "id": row["id"],
+            "name": row["name"],
+            "phone": row["phone"],
+            "imageurl": row["imageurl"],
+            "live_in_care": row["live_in_care"],
+            "live_out_care": row["live_out_care"],
+            "domestic_work": row["domestic_work"],
+            "meal_preparation": row["meal_preparation"],
+            "companionship": row["companionship"],
+            "washing_dressing": row["washing_dressing"],
+            "nursing_health_care": row["nursing_health_care"],
+            "mobility_support": row["mobility_support"],
+            "transportation": row["transportation"],
+            "errands_shopping": row["errands_shopping"],
+            "location": row["location"]
+        }
+
+        return jsonify(careneeder)
+    except Exception as e:
+        logger.error(
+            f"Error fetching careneeder detail for id {careneeder_id}", exc_info=True)
+        return jsonify({"error": "Failed to fetch careneeder detail"}), 500
+
 
 
 
