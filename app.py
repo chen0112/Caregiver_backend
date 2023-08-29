@@ -104,7 +104,14 @@ def sign_in():
             # Check if the user has posted ads before
             cursor.execute(
                 "SELECT COUNT(*) FROM caregivers WHERE phone = %s", (phone,))
-            has_posted_ads = cursor.fetchone()[0] > 0
+            has_posted_ads_caregivers = cursor.fetchone()[0] > 0
+
+            # Check if the user has posted ads in careneeders table
+            cursor.execute(
+                "SELECT COUNT(*) FROM careneeder WHERE phone = %s", (phone,))
+            has_posted_ads_careneeders = cursor.fetchone()[0] > 0
+
+            has_posted_ads = has_posted_ads_caregivers or has_posted_ads_careneeders
 
             return jsonify(success=True, hasPostedAds=has_posted_ads), 200
         else:
@@ -168,16 +175,17 @@ def update_caregiver(id):
         columns = ["name", "description", "location"]
         # Using .get() to avoid KeyError
         values = []
-        
+
         for field in columns:
             value = data.get(field, None)
             if field == 'location' and isinstance(value, list):
-                values.append(json.dumps(value))  # Serialize dict to JSON string
+                # Serialize dict to JSON string
+                values.append(json.dumps(value))
             else:
-                 values.append(value)        
+                values.append(value)
 
         app.logger.debug(f"Serialized location: {json.dumps(value)}")
-        app.logger.debug(f"Prepared values for SQL update: {values}")       
+        app.logger.debug(f"Prepared values for SQL update: {values}")
 
         # Construct the UPDATE query
         update_query = "UPDATE caregivers SET " + \
@@ -538,7 +546,7 @@ def get_all_careneeders():
     except Exception as e:
         app.logger.error("Error fetching all careneeders", exc_info=True)
         return jsonify({"error": "Failed to fetch all careneeders"}), 500
-    
+
 
 @app.route("/api/all_careneeders/<int:careneeder_id>", methods=["GET"])
 def get_careneeder_detail(careneeder_id):
@@ -585,6 +593,49 @@ def get_careneeder_detail(careneeder_id):
         return jsonify({"error": "Failed to fetch careneeder detail"}), 500
 
 
+@app.route("/api/mycareneeder/<phone>", methods=["GET"])
+def get_mycareneeders(phone):
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch the careneeders related to the phone number
+        cursor.execute("SELECT * FROM careneeder WHERE phone = %s", (phone,))
+        rows = cursor.fetchall()
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            return jsonify({"error": "Careneeders not found"}), 404
+
+        careneeders = [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "phone": row["phone"],
+                "imageurl": row["imageurl"],
+                "live_in_care": row["live_in_care"],
+                "live_out_care": row["live_out_care"],
+                "domestic_work": row["domestic_work"],
+                "meal_preparation": row["meal_preparation"],
+                "companionship": row["companionship"],
+                "washing_dressing": row["washing_dressing"],
+                "nursing_health_care": row["nursing_health_care"],
+                "mobility_support": row["mobility_support"],
+                "transportation": row["transportation"],
+                "errands_shopping": row["errands_shopping"],
+                "location": row["location"]
+            }
+            for row in rows
+        ]
+
+        return jsonify(careneeders)
+    except Exception as e:
+        app.logger.error(
+            f"Error fetching careneeders for phone {phone}", exc_info=True)
+        return jsonify({"error": "Failed to fetch careneeders"}), 500
 
 
 if __name__ == "__main__":
