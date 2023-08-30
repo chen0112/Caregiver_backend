@@ -637,6 +637,53 @@ def get_mycareneeders(phone):
             f"Error fetching careneeders for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch careneeders"}), 500
 
+@app.route("/api/mycareneeder/<int:id>", methods=["PUT"])
+def update_careneeder(id):
+    app.logger.debug(f"Entering update_careneeder for id {id}")
+    try:
+        data = request.get_json()
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Define the columns and values for the UPDATE query
+        # Added location to the list
+        columns = ["name", "location"]
+        # Using .get() to avoid KeyError
+        values = []
+
+        for field in columns:
+            value = data.get(field, None)
+            if field == 'location' and isinstance(value, list):
+                # Serialize dict to JSON string
+                values.append(json.dumps(value))
+            else:
+                values.append(value)
+
+        app.logger.debug(f"Serialized location: {json.dumps(value)}")
+        app.logger.debug(f"Prepared values for SQL update: {values}")
+
+        # Construct the UPDATE query
+        update_query = "UPDATE careneeder SET " + \
+            ', '.join([f"{col} = %s" for col in columns]) + f" WHERE id = {id}"
+
+        # Execute the UPDATE query with the values
+        cursor.execute(update_query, values)
+
+        app.logger.info(f"Received data: {data}")
+        app.logger.info(f"Executing query: {update_query}")
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        return jsonify({"success": "更新成功"}), 200
+
+    except Exception as e:
+        app.logger.error(f"Error updating careneeder: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to update careneeder"}), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True)
