@@ -437,7 +437,7 @@ def add_careneeder():
         cursor = conn.cursor()
 
         # Define the mandatory columns and values for the INSERT query
-        mandatory_columns = ["name", "phone", "imageurl", "location"]
+        mandatory_columns = ["name", "phone", "location"]
         values = [data[field] if field != 'location' else json.dumps(
             data[field]) for field in mandatory_columns]
 
@@ -456,8 +456,10 @@ def add_careneeder():
                 mandatory_columns.append(field)
                 values.append(None)
 
-        # Construct the INSERT query
-        insert_query = f"INSERT INTO careneeder ({', '.join(mandatory_columns)}) VALUES ({', '.join(['%s'] * len(mandatory_columns))}) RETURNING id"
+         # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(mandatory_columns)
+        values_placeholder = ', '.join(['%s'] * len(mandatory_columns))
+        insert_query = f"INSERT INTO careneeder ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
 
         # Execute the INSERT query with the values
         cursor.execute(insert_query, values)
@@ -472,7 +474,6 @@ def add_careneeder():
             "id": new_careneeder_id,
             "name": data["name"],
             "phone": data["phone"],
-            "imageurl": data["imageurl"],
             "location": data["location"]
         }
 
