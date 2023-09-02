@@ -638,6 +638,7 @@ def get_mycareneeders(phone):
             f"Error fetching careneeders for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch careneeders"}), 500
 
+
 @app.route("/api/mycareneeder/<int:id>", methods=["PUT"])
 def update_careneeder(id):
     app.logger.debug(f"Entering update_careneeder for id {id}")
@@ -684,6 +685,64 @@ def update_careneeder(id):
     except Exception as e:
         app.logger.error(f"Error updating careneeder: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update careneeder"}), 500
+
+
+@app.route("/api/careneeder_schedule", methods=["POST"])
+def add_schedule():
+    try:
+        data = request.get_json()
+
+        # Define the columns for the INSERT query
+        columns = ["scheduleType", "totalHours", "frequency",
+                   "startDate", "selectedTimeSlots", "durationDays"]
+
+        # Initialize values list
+        values = []
+
+        # Iterate through the columns and append the values if they exist
+        for column in columns:
+            if column in data:
+                values.append(data[column])
+            else:
+                values.append(None)
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(columns)
+        values_placeholder = ', '.join(['%s'] * len(columns))
+        insert_query = f"INSERT INTO careneederschedule ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_schedule_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the Schedule interface
+        new_schedule = {
+            "id": new_schedule_id,
+        }
+
+        # Include columns in the return object if they exist
+        for column in columns:
+            if column in data:
+                new_schedule[column] = data[column]
+
+        return jsonify(new_schedule), 201
+
+    except Exception as e:  # Could also catch specific exceptions like psycopg2.DatabaseError
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        app.logger.error(f"Error adding schedule: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add schedule"}), 500
+    finally:
+        if conn:
+            conn.close()
 
 
 if __name__ == "__main__":
