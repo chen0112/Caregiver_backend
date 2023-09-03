@@ -745,5 +745,63 @@ def add_schedule():
             conn.close()
 
 
+@app.route("/api/careneeder_ads", methods=["POST"])
+def add_careneeder_ad():
+    try:
+        data = request.get_json()
+
+        # Define the columns for the INSERT query
+        columns = ["title", "description"]
+
+        # Initialize values list
+        values = []
+
+        # Iterate through the columns and append the values if they exist
+        for column in columns:
+            if column in data:
+                values.append(data[column])
+            else:
+                values.append(None)
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(columns)
+        values_placeholder = ', '.join(['%s'] * len(columns))
+        insert_query = f"INSERT INTO careneederads ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_ad_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the ad interface
+        new_ad = {
+            "id": new_ad_id,
+        }
+
+        # Include columns in the return object if they exist
+        for column in columns:
+            if column in data:
+                new_ad[column] = data[column]
+
+        return jsonify(new_ad), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        app.logger.error(
+            f"Error adding careneeder ad: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add careneeder ad"}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
 if __name__ == "__main__":
     app.run(debug=True)
