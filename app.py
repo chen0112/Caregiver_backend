@@ -692,6 +692,9 @@ def add_schedule():
     try:
         data = request.get_json()
 
+        # Log the received data for debugging
+        app.logger.debug("Received data: %s", data)
+
         # Validate that careneeder_id is provided
         if "careneeder_id" not in data:
             return jsonify({"error": "careneeder_id is required"}), 400
