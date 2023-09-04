@@ -692,9 +692,13 @@ def add_schedule():
     try:
         data = request.get_json()
 
+        # Validate that careneeder_id is provided
+        if "careneeder_id" not in data:
+            return jsonify({"error": "careneeder_id is required"}), 400
+
         # Define the columns for the INSERT query
         columns = ["scheduleType", "totalHours", "frequency",
-                   "startDate", "selectedTimeSlots", "durationDays"]
+                   "startDate", "selectedTimeSlots", "durationDays", "careneeder_id"]
 
         # Initialize values list
         values = []
@@ -735,9 +739,9 @@ def add_schedule():
 
         return jsonify(new_schedule), 201
 
-    except Exception as e:  # Could also catch specific exceptions like psycopg2.DatabaseError
+    except Exception as e:
         if conn:
-            conn.rollback()  # Rolling back in case of an error
+            conn.rollback()
         app.logger.error(f"Error adding schedule: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add schedule"}), 500
     finally:
@@ -802,6 +806,7 @@ def add_careneeder_ad():
         if conn:
             conn.close()
 
+
 @app.route('/api/all_careneederschedule', methods=['GET'])
 def get_all_careneederschedule():
     app.logger.info("Entering GET /api/all_careneederschedule request")
@@ -813,13 +818,15 @@ def get_all_careneederschedule():
         # Fetch careneederschedule data from the database
         cursor.execute("SELECT * FROM careneederschedule ORDER BY id DESC")
         rows = cursor.fetchall()
-        app.logger.debug(f"Fetched {len(rows)} careneederschedule records from the database")
+        app.logger.debug(
+            f"Fetched {len(rows)} careneederschedule records from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
-            app.logger.warning("No careneederschedule records found in the database")
+            app.logger.warning(
+                "No careneederschedule records found in the database")
             return jsonify({"error": "No careneederschedule data available"}), 404
 
         # Format the data for JSON
@@ -843,7 +850,8 @@ def get_all_careneederschedule():
         response.headers['Pragma'] = 'no-cache'
         return response
     except Exception as e:
-        app.logger.error("Error fetching all careneederschedule", exc_info=True)
+        app.logger.error(
+            "Error fetching all careneederschedule", exc_info=True)
         return jsonify({"error": "Failed to fetch all careneederschedule"}), 500
 
 
