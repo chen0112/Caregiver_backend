@@ -802,6 +802,50 @@ def add_careneeder_ad():
         if conn:
             conn.close()
 
+@app.route('/api/all_careneederschedule', methods=['GET'])
+def get_all_careneederschedule():
+    app.logger.info("Entering GET /api/all_careneederschedule request")
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch careneederschedule data from the database
+        cursor.execute("SELECT * FROM careneederschedule ORDER BY id DESC")
+        rows = cursor.fetchall()
+        app.logger.debug(f"Fetched {len(rows)} careneederschedule records from the database")
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            app.logger.warning("No careneederschedule records found in the database")
+            return jsonify({"error": "No careneederschedule data available"}), 404
+
+        # Format the data for JSON
+        careneederschedule = [
+            {
+                "id": row["id"],
+                "scheduletype": row["scheduletype"],
+                "totalhours": row["totalhours"],
+                "frequency": row["frequency"],
+                "startdate": row["startdate"],
+                "selectedtimeslots": row["selectedtimeslots"],
+                "durationdays": row["durationdays"]
+            }
+            for row in rows
+        ]
+
+        app.logger.debug("Successfully processed all careneederschedule data")
+
+        response = make_response(jsonify(careneederschedule))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+    except Exception as e:
+        app.logger.error("Error fetching all careneederschedule", exc_info=True)
+        return jsonify({"error": "Failed to fetch all careneederschedule"}), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True)
