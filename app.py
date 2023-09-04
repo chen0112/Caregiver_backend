@@ -833,18 +833,8 @@ def get_all_careneederschedule():
             return jsonify({"error": "No careneederschedule data available"}), 404
 
         # Format the data for JSON
-        careneederschedule = [
-            {
-                "id": row["id"],
-                "scheduletype": row["scheduletype"],
-                "totalhours": row["totalhours"],
-                "frequency": row["frequency"],
-                "startdate": row["startdate"],
-                "selectedtimeslots": row["selectedtimeslots"],
-                "durationdays": row["durationdays"]
-            }
-            for row in rows
-        ]
+
+        careneederschedule = [dict(row) for row in rows]
 
         app.logger.debug("Successfully processed all careneederschedule data")
 
