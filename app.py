@@ -1,3 +1,4 @@
+from psycopg2.extras import DictCursor  # Assuming you are using psycopg2
 from flask import Flask, g, request, jsonify
 from flask_cors import CORS
 import psycopg2
@@ -850,10 +851,12 @@ def get_all_careneederschedule():
 
 @app.route("/api/all_careneederads", methods=["GET"])
 def get_careneeder_ads():
+    conn = None
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
-        cursor = conn.cursor()
+        # Use DictCursor to fetch rows as dictionaries
+        cursor = conn.cursor(cursor_factory=DictCursor)
 
         # Execute the SELECT query to fetch all records from the table
         select_query = "SELECT * FROM careneederads ORDER BY id DESC"
@@ -861,11 +864,15 @@ def get_careneeder_ads():
 
         # Fetch all rows and close the cursor
         rows = cursor.fetchall()
+        cursor.close()
 
         app.logger.debug(
             f"Fetched {len(rows)} careneederads records from the database")
 
-        cursor.close()
+        # Check the data type of the first row for debugging
+        if rows:
+            app.logger.debug(f"First row data type: {type(rows[0])}")
+            app.logger.debug(f"First row data: {rows[0]}")
 
         if not rows:
             app.logger.warning(
@@ -887,6 +894,7 @@ def get_careneeder_ads():
         app.logger.error(
             f"Error fetching careneeder ads: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to fetch careneeder ads"}), 500
+
     finally:
         if conn:
             conn.close()
