@@ -700,8 +700,8 @@ def add_schedule():
             return jsonify({"error": "careneeder_id is required"}), 400
 
         # Define the columns for the INSERT query
-        columns = ["scheduleType", "totalHours", "frequency",
-                   "startDate", "selectedTimeSlots", "durationDays", "careneeder_id"]
+        columns = ["scheduletype", "totalhours", "frequency",
+                   "startdate", "selectedtimeslots", "durationdays", "careneeder_id"]
 
         # Initialize values list
         values = []
@@ -856,8 +856,8 @@ def get_careneederschedule_by_careneeder_id(careneeder_id):
         cursor = conn.cursor(cursor_factory=DictCursor)
 
         # Fetch careneederschedule data for the specified careneeder_id from the database
-        cursor.execute("SELECT * FROM careneederschedule WHERE careneeder_id = %s ORDER BY id DESC", (careneeder_id,))
-        rows = cursor.fetchall()
+        cursor.execute("SELECT * FROM careneederschedule WHERE careneeder_id = %s", (careneeder_id,))
+        rows = cursor.fetchone()
         app.logger.debug(
             f"Fetched {len(rows)} careneederschedule records for careneeder {careneeder_id} from the database")
 
