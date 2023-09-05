@@ -603,7 +603,7 @@ def get_mycareneeders(phone):
         cursor = conn.cursor(cursor_factory=DictCursor)
 
         # Fetch the careneeders related to the phone number
-        cursor.execute("SELECT * FROM careneeder WHERE phone = %s", (phone,))
+        cursor.execute("SELECT * FROM careneeder WHERE phone = %s ORDER BY id DESC", (phone,))
         rows = cursor.fetchall()
 
         # Close the connection
