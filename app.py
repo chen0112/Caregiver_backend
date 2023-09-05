@@ -758,7 +758,7 @@ def add_careneeder_ad():
         data = request.get_json()
 
         # Define the columns for the INSERT query
-        columns = ["title", "description"]
+        columns = ["title", "description",  "careneeder_id"]
 
         # Initialize values list
         values = []
@@ -848,7 +848,48 @@ def get_all_careneederschedule():
         return jsonify({"error": "Failed to fetch all careneederschedule"}), 500
 
 
+@app.route("/api/all_careneederads", methods=["GET"])
+def get_careneeder_ads():
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
 
+        # Execute the SELECT query to fetch all records from the table
+        select_query = "SELECT * FROM careneederads ORDER BY id DESC"
+        cursor.execute(select_query)
+
+        # Fetch all rows and close the cursor
+        rows = cursor.fetchall()
+
+        app.logger.debug(
+            f"Fetched {len(rows)} careneederads records from the database")
+
+        cursor.close()
+
+        if not rows:
+            app.logger.warning(
+                "No careneederads records found in the database")
+            return jsonify({"error": "No careneederads data available"}), 404
+
+        careneederads = [dict(row) for row in rows]
+
+        app.logger.debug("Successfully processed all careneederads data")
+
+        response = make_response(jsonify(careneederads))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+
+    except Exception as e:
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        app.logger.error(
+            f"Error fetching careneeder ads: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to fetch careneeder ads"}), 500
+    finally:
+        if conn:
+            conn.close()
 
 
 if __name__ == "__main__":
