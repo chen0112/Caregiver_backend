@@ -856,8 +856,8 @@ def get_careneederschedule_by_careneeder_id(careneeder_id):
         cursor = conn.cursor(cursor_factory=DictCursor)
 
         # Fetch careneederschedule data for the specified careneeder_id from the database
-        cursor.execute("SELECT * FROM careneederschedule WHERE careneeder_id = %s", (careneeder_id,))
-        rows = cursor.fetchone()
+        cursor.execute("SELECT * FROM careneederschedule WHERE careneeder_id = %s ORDER BY id DESC", (careneeder_id,))
+        rows = cursor.fetchall()
         app.logger.debug(
             f"Fetched {len(rows)} careneederschedule records for careneeder {careneeder_id} from the database")
 
