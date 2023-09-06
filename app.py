@@ -944,6 +944,54 @@ def add_caregiver_ad():
         if conn:
             conn.close()
 
+@app.route("/api/all_caregiverads", methods=["GET"])
+def get_caregiver_ads():
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        # Use DictCursor to fetch rows as dictionaries
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Execute the SELECT query to fetch all records from the caregiverads table
+        select_query = "SELECT * FROM caregiverads ORDER BY id DESC"
+        cursor.execute(select_query)
+
+        # Fetch all rows and close the cursor
+        rows = cursor.fetchall()
+        cursor.close()
+
+        app.logger.debug(
+            f"Fetched {len(rows)} caregiverads records from the database")
+
+        # Check the data type of the first row for debugging
+        if rows:
+            app.logger.debug(f"First row data type: {type(rows[0])}")
+
+        if not rows:
+            app.logger.warning(
+                "No caregiverads records found in the database")
+            return jsonify({"error": "No caregiverads data available"}), 404
+
+        caregiverads = [dict(row) for row in rows]
+
+        app.logger.debug("Successfully processed all caregiverads data")
+
+        response = make_response(jsonify(caregiverads))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+
+    except Exception as e:
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        app.logger.error(
+            f"Error fetching caregiver ads: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to fetch caregiver ads"}), 500
+
+    finally:
+        if conn:
+            conn.close()            
+
 
 if __name__ == "__main__":
     app.run(debug=True)
