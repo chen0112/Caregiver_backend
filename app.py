@@ -237,7 +237,6 @@ def get_all_caregivers():
             {
                 "id": row["id"],
                 "name": row["name"],
-                "description": row["description"],
                 "years_of_experience": row["years_of_experience"],
                 "age": row["age"],
                 "education": row["education"],
@@ -871,7 +870,6 @@ def get_careneeder_ads():
         # Check the data type of the first row for debugging
         if rows:
             app.logger.debug(f"First row data type: {type(rows[0])}")
-            app.logger.debug(f"First row data: {rows[0]}")
 
         if not rows:
             app.logger.warning(
