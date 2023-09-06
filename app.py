@@ -172,7 +172,7 @@ def update_caregiver(id):
 
         # Define the columns and values for the UPDATE query
         # Added location to the list
-        columns = ["name", "description", "location"]
+        columns = ["name", "location"]
         # Using .get() to avoid KeyError
         values = []
 
@@ -313,14 +313,6 @@ def close_db(error):
         db_pool.putconn(db)
 
 
-# Sample caregiver data (you can replace this with your actual database integration)
-caregivers = [
-    {"id": 1, "name": "John Doe", "description": "Experienced caregiver"},
-    {"id": 2, "name": "Jane Smith", "description": "Compassionate nanny"},
-    # Add more caregivers as needed
-]
-
-
 @app.route("/api/all_caregivers/<int:caregiver_id>", methods=["GET"])
 def get_caregiver_detail(caregiver_id):
     try:
@@ -344,7 +336,6 @@ def get_caregiver_detail(caregiver_id):
         caregiver = {
             "id": row["id"],
             "name": row["name"],
-            "description": row["description"],
             "years_of_experience": row["years_of_experience"],
             "age": row["age"],
             "education": row["education"],
