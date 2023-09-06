@@ -408,7 +408,6 @@ def add_caregiver():
             "id": new_caregiver_id,
             "name": data["name"],
             "phone": data["phone"],
-            "description": data["description"],
             "age": data["age"],
             "education": data["education"],
             "gender": data["gender"],
