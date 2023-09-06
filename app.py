@@ -129,7 +129,7 @@ def get_mycaregivers(phone):
         cursor = conn.cursor(cursor_factory=DictCursor)
 
         # Fetch the caregivers related to the phone number
-        cursor.execute("SELECT * FROM caregivers WHERE phone = %s", (phone,))
+        cursor.execute("SELECT * FROM caregivers WHERE phone = %s ORDER BY id DESC", (phone,))
         rows = cursor.fetchall()
 
         # Close the connection
