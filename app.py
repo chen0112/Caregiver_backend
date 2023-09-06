@@ -630,9 +630,9 @@ def get_mycareneeders(phone):
         return jsonify({"error": "Failed to fetch careneeders"}), 500
 
 
-@app.route("/api/mycareneeder/<int:id>/ad", methods=["PUT"])
-def update_careneeder_ad(id):
-    app.logger.debug(f"Entering update_careneeder_ad for id {id}")
+@app.route("/api/mycaregiver/<int:id>/ad", methods=["PUT"])
+def update_caregiver_ad(id):
+    app.logger.debug(f"Entering update_caregiver for id {id}")
     try:
         data = request.get_json()
 
@@ -647,8 +647,8 @@ def update_careneeder_ad(id):
         app.logger.debug(f"Prepared values for SQL update: {values}")
 
         # Construct the UPDATE query
-        update_query = "UPDATE careneederads SET " + \
-            ', '.join([f"{col} = %s" for col in columns]) + f" WHERE careneeder_id = {id}"
+        update_query = "UPDATE caregiverads SET " + \
+            ', '.join([f"{col} = %s" for col in columns]) + f" WHERE caregiver_id = {id}"
 
         # Execute the UPDATE query with the values
         cursor.execute(update_query, values)
@@ -663,9 +663,8 @@ def update_careneeder_ad(id):
         return jsonify({"success": "更新成功"}), 200
 
     except Exception as e:
-        app.logger.error(
-            f"Error updating careneederad: {str(e)}", exc_info=True)
-        return jsonify({"error": "Failed to update careneederad"}), 500
+        app.logger.error(f"Error updating caregiver: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to update caregiver"}), 500
 
 
 @app.route("/api/careneeder_schedule", methods=["POST"])
