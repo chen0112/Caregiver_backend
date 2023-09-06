@@ -591,7 +591,8 @@ def get_mycareneeders(phone):
         cursor = conn.cursor(cursor_factory=DictCursor)
 
         # Fetch the careneeders related to the phone number
-        cursor.execute("SELECT * FROM careneeder WHERE phone = %s ORDER BY id DESC", (phone,))
+        cursor.execute(
+            "SELECT * FROM careneeder WHERE phone = %s ORDER BY id DESC", (phone,))
         rows = cursor.fetchall()
 
         # Close the connection
@@ -882,6 +883,63 @@ def get_careneeder_ads():
             f"Error fetching careneeder ads: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to fetch careneeder ads"}), 500
 
+    finally:
+        if conn:
+            conn.close()
+
+
+@app.route("/api/caregiver_ads", methods=["POST"])
+def add_caregiver_ad():
+    try:
+        data = request.get_json()
+
+        # Define the columns for the INSERT query
+        columns = ["title", "description", "caregiver_id"]
+
+        # Initialize values list
+        values = []
+
+        # Iterate through the columns and append the values if they exist
+        for column in columns:
+            if column in data:
+                values.append(data[column])
+            else:
+                values.append(None)
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(columns)
+        values_placeholder = ', '.join(['%s'] * len(columns))
+        insert_query = f"INSERT INTO caregiverads ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_ad_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the ad interface
+        new_ad = {
+            "id": new_ad_id,
+        }
+
+        # Include columns in the return object if they exist
+        for column in columns:
+            if column in data:
+                new_ad[column] = data[column]
+
+        return jsonify(new_ad), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        app.logger.error(f"Error adding caregiver ad: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add caregiver ad"}), 500
     finally:
         if conn:
             conn.close()
