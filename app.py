@@ -142,7 +142,6 @@ def get_mycaregivers(phone):
             {
                 "id": row["id"],
                 "name": row["name"],
-                "description": row["description"],
                 "years_of_experience": row["years_of_experience"],
                 "age": row["age"],
                 "education": row["education"],
