@@ -648,7 +648,7 @@ def update_careneeder_ad(id):
 
         # Construct the UPDATE query
         update_query = "UPDATE careneederads SET " + \
-            ', '.join([f"{col} = %s" for col in columns]) + f" WHERE id = {id}"
+            ', '.join([f"{col} = %s" for col in columns]) + f" WHERE careneeder_id = {id}"
 
         # Execute the UPDATE query with the values
         cursor.execute(update_query, values)
