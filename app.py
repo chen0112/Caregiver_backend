@@ -1036,7 +1036,7 @@ def add_animalcaregiver_detail():
         }
 
         # Include columns in the return object if they exist
-        for column in ["animalcaregiverid", "selectedservices", "selectedsnimals", "hourlycharge"]:
+        for column in ["animalcaregiverid", "selectedservices", "selectedanimals", "hourlycharge"]:
             if column in data:
                 new_detail[column] = data[column]
 
