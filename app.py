@@ -990,6 +990,7 @@ def add_animalcaregiver_detail():
     conn = None
     try:
         data = request.get_json()
+        print("Received data:", data) 
 
         # Define the columns for the INSERT query
         columns = ["animalcaregiver_id", "selected_services",
@@ -1018,6 +1019,9 @@ def add_animalcaregiver_detail():
         values_placeholder = ', '.join(['%s'] * len(columns))
         insert_query = f"INSERT INTO animalcaregiver ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
 
+        print("Inserting values:", values)  # Debugging line
+        print(f"Executing SQL: {insert_query % tuple(values)}")
+    
         # Execute the INSERT query with the values
         cursor.execute(insert_query, values)
         new_detail_id = cursor.fetchone()[0]
