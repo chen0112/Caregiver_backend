@@ -993,16 +993,16 @@ def add_animalcaregiver_detail():
         print("Received data:", data)
 
         # Define the columns for the INSERT query
-        columns = ["\"animalcaregiverId\"", "\"selectedServices\"",
-                   "\"selectedAnimals\"", "\"hourlyCharge\""]
+        columns = ["\"animalcaregiverid\"", "\"selectedservices\"",
+                   "\"selectedanimals\"", "\"hourlycharge\""]
 
         # Initialize values list
         values = []
 
         # Iterate through the columns and append the values if they exist
-        for column in ["animalcaregiverId", "selectedServices", "selectedAnimals", "hourlyCharge"]:
+        for column in ["animalcaregiverid", "selectedservices", "selectedanimals", "hourlycharge"]:
             if column in data:
-                if column == 'selectedServices' or column == 'selectedAnimals':
+                if column == 'selectedservices' or column == 'selectedanimals':
                     # Convert list of strings to PostgreSQL array format
                     values.append('{'+','.join(map(str, data[column]))+'}')
                 else:
@@ -1036,7 +1036,7 @@ def add_animalcaregiver_detail():
         }
 
         # Include columns in the return object if they exist
-        for column in ["animalcaregiverId", "selectedServices", "selectedAnimals", "hourlyCharge"]:
+        for column in ["animalcaregiverid", "selectedservices", "selectedsnimals", "hourlycharge"]:
             if column in data:
                 new_detail[column] = data[column]
 
