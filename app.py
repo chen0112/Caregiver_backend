@@ -1052,6 +1052,7 @@ def add_animalcaregiver_detail():
         if conn:
             conn.close()
 
+
 @app.route("/api/all_animalcaregivers", methods=["POST"])
 def add_animalcaregiver():
     try:
@@ -1107,10 +1108,64 @@ def add_animalcaregiver():
         return jsonify(new_animalcaregiverform), 201
 
     except Exception as e:
-        logger.error(f"Error adding animalcaregiverform: {str(e)}", exc_info=True)
-        return jsonify({"error": "Failed to add animalcaregiverform"}), 500            
+        logger.error(
+            f"Error adding animalcaregiverform: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add animalcaregiverform"}), 500
 
-            
+
+@app.route("/api/animalcaregiver_ads", methods=["POST"])
+def add_animal_caregiver_ad():
+    conn = None
+    try:
+        data = request.get_json()
+
+        # Validate if "animalcaregiverid", "title", and "description" are present in data
+        if not all(key in data for key in ["animalcaregiverid", "title", "description"]):
+            return jsonify({"error": "Required fields are missing"}), 400
+
+        # Define the columns for the INSERT query
+        columns = ["title", "description", "animalcaregiverid"]
+
+        # Initialize values list
+        values = [data["title"], data["description"],
+                  data["animalcaregiverid"]]
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(columns)
+        values_placeholder = ', '.join(['%s'] * len(columns))
+        insert_query = f"INSERT INTO animalcaregiverads ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_animalcaregiver_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the ad interface
+        new_ad = {
+            "id": new_animalcaregiver_id,
+            "title": data["title"],
+            "description": data["description"],
+            "animalcaregiverid": data["animalcaregiverid"]
+        }
+
+        return jsonify(new_ad), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        logger.error(
+            f"Error adding animal caregiver ad: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add animal caregiver ad"}), 500
+    finally:
+        if conn:
+            conn.close()
 
 
 if __name__ == "__main__":
