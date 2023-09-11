@@ -990,17 +990,17 @@ def add_animalcaregiver_detail():
     conn = None
     try:
         data = request.get_json()
-        print("Received data:", data) 
+        print("Received data:", data)
 
         # Define the columns for the INSERT query
-        columns = ["animalcaregiverId", "selectedservices",
-                   "selectedanimals", "hourlycharge"]
+        columns = ["\"animalcaregiverId\"", "\"selectedServices\"",
+                   "\"selectedAnimals\"", "\"hourlyCharge\""]
 
         # Initialize values list
         values = []
 
         # Iterate through the columns and append the values if they exist
-        for column in columns:
+        for column in ["animalcaregiverId", "selectedServices", "selectedAnimals", "hourlyCharge"]:
             if column in data:
                 if column == 'selectedServices' or column == 'selectedAnimals':
                     # Convert list of strings to PostgreSQL array format
@@ -1017,11 +1017,11 @@ def add_animalcaregiver_detail():
         # Construct the INSERT query with placeholders for all columns
         columns_placeholder = ', '.join(columns)
         values_placeholder = ', '.join(['%s'] * len(columns))
-        insert_query = f"INSERT INTO animalcaregiver ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
+        insert_query = f'INSERT INTO animalcaregiver ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id'
 
         print("Inserting values:", values)  # Debugging line
         print(f"Executing SQL: {insert_query % tuple(values)}")
-    
+
         # Execute the INSERT query with the values
         cursor.execute(insert_query, values)
         new_detail_id = cursor.fetchone()[0]
@@ -1036,7 +1036,7 @@ def add_animalcaregiver_detail():
         }
 
         # Include columns in the return object if they exist
-        for column in columns:
+        for column in ["animalcaregiverId", "selectedServices", "selectedAnimals", "hourlyCharge"]:
             if column in data:
                 new_detail[column] = data[column]
 
