@@ -648,7 +648,8 @@ def update_caregiver_ad(id):
 
         # Construct the UPDATE query
         update_query = "UPDATE caregiverads SET " + \
-            ', '.join([f"{col} = %s" for col in columns]) + f" WHERE caregiver_id = {id}"
+            ', '.join([f"{col} = %s" for col in columns]) + \
+            f" WHERE caregiver_id = {id}"
 
         # Execute the UPDATE query with the values
         cursor.execute(update_query, values)
@@ -979,6 +980,70 @@ def get_caregiver_ads():
             f"Error fetching caregiver ads: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to fetch caregiver ads"}), 500
 
+    finally:
+        if conn:
+            conn.close()
+
+
+@app.route("/api/animalcaregiver_details", methods=["POST"])
+def add_animalcaregiver_detail():
+    conn = None
+    try:
+        data = request.get_json()
+
+        # Define the columns for the INSERT query
+        columns = ["animalcaregiver_id", "selected_services",
+                   "selected_animals", "hourly_charge"]
+
+        # Initialize values list
+        values = []
+
+        # Iterate through the columns and append the values if they exist
+        for column in columns:
+            if column in data:
+                if column == 'selected_services' or column == 'selected_animals':
+                    # Convert list of strings to PostgreSQL array format
+                    values.append('{'+','.join(map(str, data[column]))+'}')
+                else:
+                    values.append(data[column])
+            else:
+                values.append(None)
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(columns)
+        values_placeholder = ', '.join(['%s'] * len(columns))
+        insert_query = f"INSERT INTO animalcaregiver ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_detail_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the interface
+        new_detail = {
+            "id": new_detail_id,
+        }
+
+        # Include columns in the return object if they exist
+        for column in columns:
+            if column in data:
+                new_detail[column] = data[column]
+
+        return jsonify(new_detail), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        app.logger.error(
+            f"Error adding animalcaregiver detail: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add animalcaregiver detail"}), 500
     finally:
         if conn:
             conn.close()
