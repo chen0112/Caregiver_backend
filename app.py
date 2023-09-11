@@ -1052,6 +1052,66 @@ def add_animalcaregiver_detail():
         if conn:
             conn.close()
 
+@app.route("/api/all_animalcaregivers", methods=["POST"])
+def add_animalcaregiver():
+    try:
+        data = request.get_json()
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Define the mandatory columns and values for the INSERT query
+        mandatory_columns = ["name", "phone", "imageurl", "location"]
+        values = [data[field] if field != 'location' else json.dumps(
+            data[field]) for field in mandatory_columns]
+
+        # Optional fields: yearsOfExperience, age, education, gender
+        # Add them to the INSERT query only if they are present in the data
+        optional_fields = ["years_of_experience", "age", "education", "gender"]
+        for field in optional_fields:
+            if field in data:
+                mandatory_columns.append(field)
+                values.append(data[field])
+            else:
+                # If the optional field is missing, set a default value or NULL
+                # For example, set the yearsOfExperience to NULL
+                # You can customize the default values as needed
+                mandatory_columns.append(field)
+                values.append(None)
+
+        # Construct the INSERT query with the appropriate number of placeholders
+        insert_query = f"INSERT INTO animalcaregiversform ({', '.join(mandatory_columns)}) VALUES ({', '.join(['%s'] * len(mandatory_columns))}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_animalcaregiver_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Return the newly created caregiver data with the assigned ID
+        # imageUrl is possibly from const [imageUrl, setImageUrl] = useState<string | null>(null) in CaregiverForm.tsx
+        new_animalcaregiverform = {
+            "id": new_animalcaregiver_id,
+            "name": data["name"],
+            "phone": data["phone"],
+            "age": data["age"],
+            "education": data["education"],
+            "gender": data["gender"],
+            "years_of_experience": data["years_of_experience"],
+            "imageurl": data["imageurl"],
+            "location": data["location"]
+        }
+        return jsonify(new_animalcaregiverform), 201
+
+    except Exception as e:
+        logger.error(f"Error adding caregiver: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add caregiver"}), 500            
+
+            
+
 
 if __name__ == "__main__":
     app.run(debug=True)
