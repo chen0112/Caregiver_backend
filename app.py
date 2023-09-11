@@ -993,8 +993,8 @@ def add_animalcaregiver_detail():
         print("Received data:", data) 
 
         # Define the columns for the INSERT query
-        columns = ["animalcaregiverId", "selectedServices",
-                   "selectedAnimals", "hourlyCharge"]
+        columns = ["animalcaregiverId", "selectedservices",
+                   "selectedanimals", "hourlycharge"]
 
         # Initialize values list
         values = []
