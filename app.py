@@ -1081,7 +1081,7 @@ def add_animalcaregiver():
                 values.append(None)
 
         # Construct the INSERT query with the appropriate number of placeholders
-        insert_query = f"INSERT INTO animalcaregiversform ({', '.join(mandatory_columns)}) VALUES ({', '.join(['%s'] * len(mandatory_columns))}) RETURNING id"
+        insert_query = f"INSERT INTO animalcaregiverform ({', '.join(mandatory_columns)}) VALUES ({', '.join(['%s'] * len(mandatory_columns))}) RETURNING id"
 
         # Execute the INSERT query with the values
         cursor.execute(insert_query, values)
@@ -1107,8 +1107,8 @@ def add_animalcaregiver():
         return jsonify(new_animalcaregiverform), 201
 
     except Exception as e:
-        logger.error(f"Error adding caregiver: {str(e)}", exc_info=True)
-        return jsonify({"error": "Failed to add caregiver"}), 500            
+        logger.error(f"Error adding animalcaregiverform: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add animalcaregiverform"}), 500            
 
             
 
