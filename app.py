@@ -1218,7 +1218,7 @@ def get_all_animal_caregivers():
 
     
 @app.route('/api/all_animal_caregivers_details', methods=['GET'])
-def get_all_animal_caregivers():
+def get_all_animal_caregivers_details():
     app.logger.info("---------------Entering GET /api/all_animal_caregivers details request")
     try:
         # Connect to the PostgreSQL database
