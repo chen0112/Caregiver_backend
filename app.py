@@ -1167,7 +1167,7 @@ def add_animal_caregiver_ad():
         if conn:
             conn.close()
 
-@app.route('/api/all_animal_caregivers', methods=['GET'])
+@app.route('/api/all_animalcaregivers', methods=['GET'])
 def get_all_animal_caregivers():
     app.logger.info("---------------Entering GET /api/all_animal_caregivers request")
     try:
