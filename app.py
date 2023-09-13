@@ -1341,5 +1341,45 @@ def get_animalcaregiverform_detail(animalcaregiverform_id):
         return jsonify({"error": "Failed to fetch animal caregiver form detail"}), 500
 
 
+@app.route("/api/myanimalcaregiverform/<phone>", methods=["GET"])
+def get_myanimalcaregiverform(phone):
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch the records related to the phone number from the animalcaregiverform table
+        cursor.execute(
+            "SELECT * FROM animalcaregiverform WHERE phone = %s ORDER BY id DESC", (phone,))
+        rows = cursor.fetchall()
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            return jsonify({"error": "Animal Caregiver Forms not found"}), 404
+
+        animalcaregiverforms = [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "years_of_experience": row["years_of_experience"],
+                "age": row["age"],
+                "education": row["education"],
+                "gender": row["gender"],
+                "phone": row["phone"],
+                "imageurl": row["imageurl"],
+                "location": row["location"]
+            }
+            for row in rows
+        ]
+
+        return jsonify(animalcaregiverforms)
+    except Exception as e:
+        app.logger.error(
+            f"Error fetching animal caregiver forms for phone {phone}", exc_info=True)
+        return jsonify({"error": "Failed to fetch animal caregiver forms"}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
