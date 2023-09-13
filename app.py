@@ -1167,9 +1167,11 @@ def add_animal_caregiver_ad():
         if conn:
             conn.close()
 
+
 @app.route('/api/all_animalcaregivers', methods=['GET'])
 def get_all_animal_caregivers():
-    app.logger.info("---------------Entering GET /api/all_animal_caregivers request")
+    app.logger.info(
+        "---------------Entering GET /api/all_animal_caregivers request")
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
@@ -1178,7 +1180,8 @@ def get_all_animal_caregivers():
         # Fetch animal caregivers from the database
         cursor.execute("SELECT * FROM animalcaregiverform ORDER BY id DESC")
         rows = cursor.fetchall()
-        app.logger.debug(f"Fetched {len(rows)} animal caregivers from the database")
+        app.logger.debug(
+            f"Fetched {len(rows)} animal caregivers from the database")
 
         # Close the connection
         cursor.close()
@@ -1214,12 +1217,13 @@ def get_all_animal_caregivers():
         return response
     except Exception as e:
         app.logger.error("Error fetching all animal caregivers", exc_info=True)
-        return jsonify({"error": "Failed to fetch all animal caregivers"}), 500     
+        return jsonify({"error": "Failed to fetch all animal caregivers"}), 500
 
-    
+
 @app.route('/api/all_animal_caregivers_details', methods=['GET'])
 def get_all_animal_caregivers_details():
-    app.logger.info("---------------Entering GET /api/all_animal_caregivers details request")
+    app.logger.info(
+        "---------------Entering GET /api/all_animal_caregivers details request")
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
@@ -1228,13 +1232,15 @@ def get_all_animal_caregivers_details():
         # Fetch animal caregivers from the database
         cursor.execute("SELECT * FROM animalcaregiver ORDER BY id DESC")
         rows = cursor.fetchall()
-        app.logger.debug(f"Fetched {len(rows)} animal caregivers details from the database")
+        app.logger.debug(
+            f"Fetched {len(rows)} animal caregivers details from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
-            app.logger.warning("No animal caregivers details found in the database")
+            app.logger.warning(
+                "No animal caregivers details found in the database")
             return jsonify({"error": "Problem fetching animal caregivers details"}), 404
 
         # Directly convert the rows into JSON
@@ -1249,7 +1255,8 @@ def get_all_animal_caregivers_details():
             for row in rows
         ]
 
-        app.logger.debug("Successfully processed all animal caregivers details data")
+        app.logger.debug(
+            "Successfully processed all animal caregivers details data")
 
         response = make_response(jsonify(animal_caregivers))
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
@@ -1257,16 +1264,19 @@ def get_all_animal_caregivers_details():
         return response
 
     except Exception as e:
-        app.logger.error("Error fetching all animal caregivers details", exc_info=True)
-        return jsonify({"error": "Failed to fetch all animal caregivers details"}), 500     
+        app.logger.error(
+            "Error fetching all animal caregivers details", exc_info=True)
+        return jsonify({"error": "Failed to fetch all animal caregivers details"}), 500
+
 
 @app.route('/api/all_animal_caregiver_ads', methods=['GET'])
 def get_all_animal_caregiver_ads():
     try:
         conn = get_db()
         cursor = conn.cursor(cursor_factory=DictCursor)
-        
-        cursor.execute("SELECT * FROM animalcaregiverads ORDER BY id DESC")  # Using the correct table name
+
+        # Using the correct table name
+        cursor.execute("SELECT * FROM animalcaregiverads ORDER BY id DESC")
         rows = cursor.fetchall()
         cursor.close()
 
@@ -1291,6 +1301,44 @@ def get_all_animal_caregiver_ads():
     except Exception as e:
         return jsonify({"error": "Failed to fetch animal caregiver ads"}), 500
 
+
+@app.route("/api/all_animalcaregiverform/<int:animalcaregiverform_id>", methods=["GET"])
+def get_animalcaregiverform_detail(animalcaregiverform_id):
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch the specific record from the animalcaregiverform table using the id
+        cursor.execute(
+            "SELECT * FROM animalcaregiverform WHERE id = %s", (animalcaregiverform_id,))
+        row = cursor.fetchone()
+
+        # Close the connection
+        cursor.close()
+
+        # Check if a record with the given id exists
+        if not row:
+            return jsonify({"error": "Animal Caregiver Form not found"}), 404
+
+        # Format the data for JSON (update these keys as needed)
+        animalcaregiverform = {
+            "id": row["id"],
+            "name": row["name"],
+            "years_of_experience": row["years_of_experience"],
+            "age": row["age"],
+            "education": row["education"],
+            "gender": row["gender"],
+            "phone": row["phone"],
+            "imageurl": row["imageurl"],
+            "location": row["location"]
+        }
+
+        return jsonify(animalcaregiverform)
+    except Exception as e:
+        logger.error(
+            f"Error fetching animal caregiver form detail for id {animalcaregiverform_id}", exc_info=True)
+        return jsonify({"error": "Failed to fetch animal caregiver form detail"}), 500
 
 
 if __name__ == "__main__":
