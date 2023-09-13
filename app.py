@@ -1423,6 +1423,44 @@ def get_myanimalcaregiverform(phone):
             f"Error fetching animal caregiver forms for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch animal caregiver forms"}), 500
 
+@app.route("/api/myanimalcaregiver/<int:id>/ad", methods=["PUT"])
+def update_animalcaregiver_ad(id):
+    app.logger.debug(f"Entering update_animalcaregiver for id {id}")
+    try:
+        data = request.get_json()
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Define the columns and values for the UPDATE query
+        columns = ["title", "description"]
+        values = [data.get(field, None) for field in columns]
+
+        app.logger.debug(f"Prepared values for SQL update: {values}")
+
+        # Construct the UPDATE query
+        update_query = "UPDATE animalcaregiverads SET " + \
+            ', '.join([f"{col} = %s" for col in columns]) + \
+            f" WHERE animalcaregiverid = {id}"
+
+        # Execute the UPDATE query with the values
+        cursor.execute(update_query, values)
+
+        app.logger.info(f"Received data: {data}")
+        app.logger.info(f"Executing query: {update_query}")
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        return jsonify({"success": "更新成功"}), 200
+
+    except Exception as e:
+        app.logger.error(f"Error updating animal caregiver: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to update animal caregiver"}), 500
+   
+
 
 if __name__ == "__main__":
     app.run(debug=True)
