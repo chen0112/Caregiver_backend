@@ -112,7 +112,12 @@ def sign_in():
                 "SELECT COUNT(*) FROM careneeder WHERE phone = %s", (phone,))
             has_posted_ads_careneeders = cursor.fetchone()[0] > 0
 
-            has_posted_ads = has_posted_ads_caregivers or has_posted_ads_careneeders
+            # Check if the user has posted forms before in animalcaregiverform table
+            cursor.execute(
+                "SELECT COUNT(*) FROM animalcaregiverform WHERE phone = %s", (phone,))
+            has_posted_ads_animalcaregiverform = cursor.fetchone()[0] > 0
+
+            has_posted_ads = has_posted_ads_caregivers or has_posted_ads_careneeders or has_posted_ads_animalcaregiverform
 
             return jsonify(success=True, hasPostedAds=has_posted_ads), 200
         else:
