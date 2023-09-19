@@ -368,7 +368,7 @@ def add_caregiver():
         cursor = conn.cursor()
 
         # Define the mandatory columns and values for the INSERT query
-        mandatory_columns = ["name", "phone", "imageurl", "location"]
+        mandatory_columns = ["name", "phone", "imageurl", "location", "hourlycharge"]
         values = [data[field] if field != 'location' else json.dumps(
             data[field]) for field in mandatory_columns]
 
@@ -408,7 +408,8 @@ def add_caregiver():
             "gender": data["gender"],
             "years_of_experience": data["years_of_experience"],
             "imageurl": data["imageurl"],
-            "location": data["location"]
+            "location": data["location"],
+            "hourlycharge": data["hourlycharge"] 
         }
         return jsonify(new_caregiver), 201
 
