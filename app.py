@@ -248,7 +248,8 @@ def get_all_caregivers():
                 "gender": row["gender"],
                 "phone": row["phone"],
                 "imageurl": row["imageurl"],
-                "location": row["location"]
+                "location": row["location"],
+                "hourlycharge": row["hourlycharge"]
             }
             for row in rows
         ]
@@ -348,7 +349,8 @@ def get_caregiver_detail(caregiver_id):
             "gender": row["gender"],
             "phone": row["phone"],
             "imageurl": row["imageurl"],
-            "location": row["location"]
+            "location": row["location"],
+            "hourlycharge": row["hourlycharge"]
         }
 
         return jsonify(caregiver)
@@ -368,7 +370,8 @@ def add_caregiver():
         cursor = conn.cursor()
 
         # Define the mandatory columns and values for the INSERT query
-        mandatory_columns = ["name", "phone", "imageurl", "location", "hourlycharge"]
+        mandatory_columns = ["name", "phone",
+                             "imageurl", "location", "hourlycharge"]
         values = [data[field] if field != 'location' else json.dumps(
             data[field]) for field in mandatory_columns]
 
@@ -409,7 +412,7 @@ def add_caregiver():
             "years_of_experience": data["years_of_experience"],
             "imageurl": data["imageurl"],
             "location": data["location"],
-            "hourlycharge": data["hourlycharge"] 
+            "hourlycharge": data["hourlycharge"]
         }
         return jsonify(new_caregiver), 201
 
@@ -738,6 +741,7 @@ def add_schedule():
         if conn:
             conn.close()
 
+
 @app.route("/api/mycareneeder/<int:id>/ad", methods=["PUT"])
 def update_careneeder_ad(id):
     app.logger.debug(f"Entering update_careneeder for id {id}")
@@ -774,7 +778,6 @@ def update_careneeder_ad(id):
     except Exception as e:
         app.logger.error(f"Error updating careneeder: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update careneeder"}), 500
-
 
 
 @app.route("/api/careneeder_ads", methods=["POST"])
@@ -1424,6 +1427,7 @@ def get_myanimalcaregiverform(phone):
             f"Error fetching animal caregiver forms for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch animal caregiver forms"}), 500
 
+
 @app.route("/api/myanimalcaregiver/<int:id>/ad", methods=["PUT"])
 def update_animalcaregiver_ad(id):
     app.logger.debug(f"Entering update_animalcaregiver for id {id}")
@@ -1458,9 +1462,9 @@ def update_animalcaregiver_ad(id):
         return jsonify({"success": "更新成功"}), 200
 
     except Exception as e:
-        app.logger.error(f"Error updating animal caregiver: {str(e)}", exc_info=True)
+        app.logger.error(
+            f"Error updating animal caregiver: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update animal caregiver"}), 500
-   
 
 
 if __name__ == "__main__":
