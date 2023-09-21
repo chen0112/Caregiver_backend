@@ -436,7 +436,7 @@ def add_careneeder():
         cursor = conn.cursor()
 
         # Define the mandatory columns and values for the INSERT query
-        mandatory_columns = ["name", "phone", "location"]
+        mandatory_columns = ["name", "phone", "location", "hourlycharge"]
         values = [data[field] if field != 'location' else json.dumps(
             data[field]) for field in mandatory_columns]
 
@@ -473,7 +473,8 @@ def add_careneeder():
             "id": new_careneeder_id,
             "name": data["name"],
             "phone": data["phone"],
-            "location": data["location"]
+            "location": data["location"],
+            "hourlycharge": data["hourlycharge"]
         }
 
         # Include optional fields in the return object if they exist
@@ -521,6 +522,7 @@ def get_all_careneeders():
                 "id": row["id"],
                 "name": row["name"],
                 "phone": row["phone"],
+                "hourlycharge": row["hourlycharge"],
                 "imageurl": row["imageurl"],
                 "live_in_care": row["live_in_care"],
                 "live_out_care": row["live_out_care"],
@@ -572,6 +574,7 @@ def get_careneeder_detail(careneeder_id):
             "id": row["id"],
             "name": row["name"],
             "phone": row["phone"],
+            "hourlycharge": row["hourlycharge"],
             "imageurl": row["imageurl"],
             "live_in_care": row["live_in_care"],
             "live_out_care": row["live_out_care"],
@@ -616,6 +619,7 @@ def get_mycareneeders(phone):
                 "id": row["id"],
                 "name": row["name"],
                 "phone": row["phone"],
+                "hourlycharge": row["hourlycharge"],
                 "imageurl": row["imageurl"],
                 "live_in_care": row["live_in_care"],
                 "live_out_care": row["live_out_care"],
