@@ -1471,5 +1471,133 @@ def update_animalcaregiver_ad(id):
         return jsonify({"error": "Failed to update animal caregiver"}), 500
 
 
+@app.route("/api/all_animalcareneeders", methods=["POST"])
+def add_animalcareneeder():
+    try:
+        data = request.get_json()
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Define the mandatory columns and values for the INSERT query
+        mandatory_columns = ["name", "phone", "imageurl", "location"]
+        values = [data[field] if field != 'location' else json.dumps(
+            data[field]) for field in mandatory_columns]
+
+        # Optional fields: yearsOfExperience, age, education, gender
+        # Add them to the INSERT query only if they are present in the data
+        optional_fields = ["years_of_experience", "age", "education", "gender"]
+        for field in optional_fields:
+            if field in data:
+                mandatory_columns.append(field)
+                values.append(data[field])
+            else:
+                # If the optional field is missing, set a default value or NULL
+                # For example, set the yearsOfExperience to NULL
+                # You can customize the default values as needed
+                mandatory_columns.append(field)
+                values.append(None)
+
+        # Construct the INSERT query with the appropriate number of placeholders
+        insert_query = f"INSERT INTO animalcareneederform ({', '.join(mandatory_columns)}) VALUES ({', '.join(['%s'] * len(mandatory_columns))}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_animalcareneeder_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Return the newly created caregiver data with the assigned ID
+        # imageUrl is possibly from const [imageUrl, setImageUrl] = useState<string | null>(null) in CaregiverForm.tsx
+        new_animalcareneederform = {
+            "id": new_animalcareneeder_id,
+            "name": data["name"],
+            "phone": data["phone"],
+            "age": data["age"],
+            "education": data["education"],
+            "gender": data["gender"],
+            "years_of_experience": data["years_of_experience"],
+            "imageurl": data["imageurl"],
+            "location": data["location"]
+        }
+        return jsonify(new_animalcareneederform), 201
+
+    except Exception as e:
+        logger.error(
+            f"Error adding animalcareneederform: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add animalcareneederform"}), 500
+
+
+@app.route("/api/animalcareneeder_details", methods=["POST"])
+def add_animalcareneeder_detail():
+    conn = None
+    try:
+        data = request.get_json()
+        print("Received data:", data)
+
+        # Define the columns for the INSERT query
+        columns = ["\"animalcareneederid\"", "\"selectedservices\"",
+                   "\"selectedanimals\"", "\"hourlycharge\""]
+
+        # Initialize values list
+        values = []
+
+        # Iterate through the columns and append the values if they exist
+        for column in ["animalcareneederid", "selectedservices", "selectedanimals", "hourlycharge"]:
+            if column in data:
+                if column == 'selectedservices' or column == 'selectedanimals':
+                    # Convert list of strings to PostgreSQL array format
+                    values.append('{'+','.join(map(str, data[column]))+'}')
+                else:
+                    values.append(data[column])
+            else:
+                values.append(None)
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(columns)
+        values_placeholder = ', '.join(['%s'] * len(columns))
+        insert_query = f'INSERT INTO animalcareneeder ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id'
+
+        print("Inserting values:", values)  # Debugging line
+        print(f"Executing SQL: {insert_query % tuple(values)}")
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_detail_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the interface
+        new_detail = {
+            "id": new_detail_id,
+        }
+
+        # Include columns in the return object if they exist
+        for column in ["animalcareneederid", "selectedservices", "selectedanimals", "hourlycharge"]:
+            if column in data:
+                new_detail[column] = data[column]
+
+        return jsonify(new_detail), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        app.logger.error(
+            f"Error adding animalcareneeder detail: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add animalcareneeder detail"}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
 if __name__ == "__main__":
     app.run(debug=True)
