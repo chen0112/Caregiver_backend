@@ -1598,6 +1598,60 @@ def add_animalcareneeder_detail():
         if conn:
             conn.close()
 
+@app.route("/api/animalcareneeder_ads", methods=["POST"])
+def add_animal_careneeder_ad():
+    conn = None
+    try:
+        data = request.get_json()
+
+        # Validate if "animalcaregiverid", "title", and "description" are present in data
+        if not all(key in data for key in ["animalcareneederid", "title", "description"]):
+            return jsonify({"error": "Required fields are missing"}), 400
+
+        # Define the columns for the INSERT query
+        columns = ["title", "description", "animalcareneederid"]
+
+        # Initialize values list
+        values = [data["title"], data["description"],
+                  data["animalcareneederid"]]
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(columns)
+        values_placeholder = ', '.join(['%s'] * len(columns))
+        insert_query = f"INSERT INTO animalcareneederads ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_animalcareneeder_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the ad interface
+        new_ad = {
+            "id": new_animalcareneeder_id,
+            "title": data["title"],
+            "description": data["description"],
+            "animalcareneederid": data["animalcareneederid"]
+        }
+
+        return jsonify(new_ad), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        logger.error(
+            f"Error adding animal careneeder ad: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add animal careneeder ad"}), 500
+    finally:
+        if conn:
+            conn.close()            
+
 
 if __name__ == "__main__":
     app.run(debug=True)
