@@ -442,7 +442,7 @@ def add_careneeder():
 
         # Define optional fields and include them in columns and values if they are present
         optional_fields = [
-            "live_in_care", "live_out_care", "domestic_work", "meal_preparation",
+            "imageurl","live_in_care", "live_out_care", "domestic_work", "meal_preparation",
             "companionship", "washing_dressing", "nursing_health_care",
             "mobility_support", "transportation", "errands_shopping"
         ]
