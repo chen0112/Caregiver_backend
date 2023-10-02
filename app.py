@@ -1652,6 +1652,137 @@ def add_animal_careneeder_ad():
         if conn:
             conn.close()            
 
+@app.route('/api/all_animalcareneeders', methods=['GET'])
+def get_all_animal_careneeders():
+    app.logger.info(
+        "---------------Entering GET /api/all_animal_careneeders request")
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch animal caregivers from the database
+        cursor.execute("SELECT * FROM animalcareneederform ORDER BY id DESC")
+        rows = cursor.fetchall()
+        app.logger.debug(
+            f"Fetched {len(rows)} animal careneeders from the database")
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            app.logger.warning("No animal careneeders found in the database")
+            return jsonify({"error": "Problem of fetching animal careneeders"}), 404
+
+        # Directly convert the rows into JSON
+        animal_careneeders = [dict(row) for row in rows]
+
+        # Format the data for JSON
+        animal_careneeders = [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "years_of_experience": row["years_of_experience"],
+                "age": row["age"],
+                "education": row["education"],
+                "gender": row["gender"],
+                "phone": row["phone"],
+                "imageurl": row["imageurl"],
+                "location": row["location"]
+            }
+            for row in rows
+        ]
+
+        app.logger.debug("Successfully processed all animal careneeders data")
+
+        response = make_response(jsonify(animal_careneeders))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+    except Exception as e:
+        app.logger.error("Error fetching all animal careneeders", exc_info=True)
+        return jsonify({"error": "Failed to fetch all animal careneeders"}), 500
+    
+@app.route('/api/all_animal_careneeders_details', methods=['GET'])
+def get_all_animal_careneeders_details():
+    app.logger.info(
+        "---------------Entering GET /api/all_animal_careneeders details request")
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch animal caregivers from the database
+        cursor.execute("SELECT * FROM animalcareneeder ORDER BY id DESC")
+        rows = cursor.fetchall()
+        app.logger.debug(
+            f"Fetched {len(rows)} animal careneeders details from the database")
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            app.logger.warning(
+                "No animal careneeders details found in the database")
+            return jsonify({"error": "Problem fetching animal careneeders details"}), 404
+
+        # Directly convert the rows into JSON
+        animal_caregivers = [
+            {
+                "id": row["id"],
+                "animalcareneederid": row["animalcareneederid"],
+                "selectedservices": row["selectedservices"],
+                "selectedanimals": row["selectedanimals"],
+                "hourlycharge": row["hourlycharge"]
+            }
+            for row in rows
+        ]
+
+        app.logger.debug(
+            "Successfully processed all animal careneeders details data")
+
+        response = make_response(jsonify(animal_caregivers))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+
+    except Exception as e:
+        app.logger.error(
+            "Error fetching all animal careneeders details", exc_info=True)
+        return jsonify({"error": "Failed to fetch all animal careneeders details"}), 500    
+    
+@app.route('/api/all_animal_careneeder_ads', methods=['GET'])
+def get_all_animal_careneeder_ads():
+    try:
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Using the correct table name
+        cursor.execute("SELECT * FROM animalcareneederads ORDER BY id DESC")
+        rows = cursor.fetchall()
+        cursor.close()
+
+        if not rows:
+            return jsonify({"error": "No animal careneeder ads found"}), 404
+
+        animal_careneeder_ads = [
+            {
+                "id": row["id"],
+                "title": row["title"],
+                "description": row["description"],
+                "animalcareneederid": row["animalcareneederid"]
+            }
+            for row in rows
+        ]
+
+        response = make_response(jsonify(animal_careneeder_ads))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+
+    except Exception as e:
+        return jsonify({"error": "Failed to fetch animal careneeder ads"}), 500    
+
 
 if __name__ == "__main__":
     app.run(debug=True)
