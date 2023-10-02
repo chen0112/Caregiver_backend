@@ -117,7 +117,14 @@ def sign_in():
                 "SELECT COUNT(*) FROM animalcaregiverform WHERE phone = %s", (phone,))
             has_posted_ads_animalcaregiverform = cursor.fetchone()[0] > 0
 
-            has_posted_ads = has_posted_ads_caregivers or has_posted_ads_careneeders or has_posted_ads_animalcaregiverform
+            # Check if the user has posted forms before in animalcareneederform table
+            cursor.execute(
+                "SELECT COUNT(*) FROM animalcareneederform WHERE phone = %s", (phone,))
+            has_posted_ads_animalcareneederform = cursor.fetchone()[0] > 0
+
+            # Combine all checks
+            has_posted_ads = (has_posted_ads_caregivers or has_posted_ads_careneeders
+                              or has_posted_ads_animalcaregiverform or has_posted_ads_animalcareneederform)
 
             return jsonify(success=True, hasPostedAds=has_posted_ads), 200
         else:
@@ -442,7 +449,7 @@ def add_careneeder():
 
         # Define optional fields and include them in columns and values if they are present
         optional_fields = [
-            "imageurl","live_in_care", "live_out_care", "domestic_work", "meal_preparation",
+            "imageurl", "live_in_care", "live_out_care", "domestic_work", "meal_preparation",
             "companionship", "washing_dressing", "nursing_health_care",
             "mobility_support", "transportation", "errands_shopping"
         ]
@@ -1598,6 +1605,7 @@ def add_animalcareneeder_detail():
         if conn:
             conn.close()
 
+
 @app.route("/api/animalcareneeder_ads", methods=["POST"])
 def add_animal_careneeder_ad():
     conn = None
@@ -1650,7 +1658,8 @@ def add_animal_careneeder_ad():
         return jsonify({"error": "Failed to add animal careneeder ad"}), 500
     finally:
         if conn:
-            conn.close()            
+            conn.close()
+
 
 @app.route('/api/all_animalcareneeders', methods=['GET'])
 def get_all_animal_careneeders():
@@ -1700,9 +1709,11 @@ def get_all_animal_careneeders():
         response.headers['Pragma'] = 'no-cache'
         return response
     except Exception as e:
-        app.logger.error("Error fetching all animal careneeders", exc_info=True)
+        app.logger.error(
+            "Error fetching all animal careneeders", exc_info=True)
         return jsonify({"error": "Failed to fetch all animal careneeders"}), 500
-    
+
+
 @app.route('/api/all_animal_careneeders_details', methods=['GET'])
 def get_all_animal_careneeders_details():
     app.logger.info(
@@ -1749,8 +1760,9 @@ def get_all_animal_careneeders_details():
     except Exception as e:
         app.logger.error(
             "Error fetching all animal careneeders details", exc_info=True)
-        return jsonify({"error": "Failed to fetch all animal careneeders details"}), 500    
-    
+        return jsonify({"error": "Failed to fetch all animal careneeders details"}), 500
+
+
 @app.route('/api/all_animal_careneeder_ads', methods=['GET'])
 def get_all_animal_careneeder_ads():
     try:
@@ -1781,7 +1793,8 @@ def get_all_animal_careneeder_ads():
         return response
 
     except Exception as e:
-        return jsonify({"error": "Failed to fetch animal careneeder ads"}), 500    
+        return jsonify({"error": "Failed to fetch animal careneeder ads"}), 500
+
 
 @app.route("/api/myanimalcareneeder/<int:id>/ad", methods=["PUT"])
 def update_animalcareneeder_ad(id):
@@ -1820,6 +1833,7 @@ def update_animalcareneeder_ad(id):
         app.logger.error(
             f"Error updating animal careneeder: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update animal careneeder"}), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True)
