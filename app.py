@@ -40,7 +40,7 @@ s3 = boto3.client('s3')
 @app.route('/status')
 def status():
     app.logger.info('Status endpoint was called')
-    return "Gunicorn is running!", 200
+    return "Gunicorn is running good!", 200
 
 
 @app.route("/test_put", methods=["PUT"])
