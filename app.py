@@ -1833,6 +1833,45 @@ def update_animalcareneeder_ad(id):
         app.logger.error(
             f"Error updating animal careneeder: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update animal careneeder"}), 500
+    
+
+@app.route("/api/all_animalcareneederform/<int:animalcareneederform_id>", methods=["GET"])
+def get_animalcareneederform_detail(animalcareneederform_id):
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch the specific record from the animalcareneederform table using the id
+        cursor.execute(
+            "SELECT * FROM animalcareneederform WHERE id = %s", (animalcareneederform_id,))
+        row = cursor.fetchone()
+
+        # Close the connection
+        cursor.close()
+
+        # Check if a record with the given id exists
+        if not row:
+            return jsonify({"error": "Animal Careneeder Form not found"}), 404
+
+        # Format the data for JSON (update these keys as needed)
+        animalcareneederform = {
+            "id": row["id"],
+            "name": row["name"],
+            "years_of_experience": row["years_of_experience"],
+            "age": row["age"],
+            "education": row["education"],
+            "gender": row["gender"],
+            "phone": row["phone"],
+            "imageurl": row["imageurl"],
+            "location": row["location"]
+        }
+
+        return jsonify(animalcareneederform)
+    except Exception as e:
+        logger.error(
+            f"Error fetching animal careneeder form detail for id {animalcareneederform_id}", exc_info=True)
+        return jsonify({"error": "Failed to fetch animal careneeder form detail"}), 500
 
 
 if __name__ == "__main__":
