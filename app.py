@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.logger.setLevel(logging.DEBUG)
 
