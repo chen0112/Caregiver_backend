@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins=[
+                    "http://localhost:5173", "https://www.yongxinguanai.com"])
+
 
 app.logger.setLevel(logging.DEBUG)
 
@@ -36,7 +38,6 @@ file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
 app.logger.addHandler(file_handler)
 
-CORS(app, resources={r"/*": {"origins": "*"}})
 
 s3 = boto3.client('s3')
 
@@ -1924,7 +1925,7 @@ def get_myanimalcareneederform(phone):
 def handle_message(data):
     # Get current timestamp
     createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
+
     sender_id = data.get('sender_id')
     recipient_id = data.get('recipient_id')
     content = data.get('content')
@@ -1936,7 +1937,7 @@ def handle_message(data):
         query = """INSERT INTO messages (sender_id, recipient_id, content, createtime) VALUES (%s, %s, %s, %s)"""
         cur.execute(query, (sender_id, recipient_id, content, createtime))
         conn.commit()
-        
+
         # Add the timestamp to the data being broadcasted
         data['createtime'] = createtime
 
