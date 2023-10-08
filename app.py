@@ -1944,7 +1944,7 @@ def handle_message(data):
         socketio.emit('receive_message', data)
 
     except Exception as e:
-        print("Failed to add message to database.", e)
+        app.logger.error("Failed to add message to database.", e)
         conn.rollback()
     finally:
         cur.close()
