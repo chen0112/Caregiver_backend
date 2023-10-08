@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-socketio = SocketIO(app, cors_allowed_origins=["http://localhost:5173", "https://nginx.yongxinguanai.com"])
-
+socketio = SocketIO(app, cors_allowed_origins=[
+                    "http://localhost:5173", "https://nginx.yongxinguanai.com"], transports=['polling', 'websocket'])
 
 
 app.logger.setLevel(logging.DEBUG)
@@ -39,8 +39,8 @@ file_handler.setFormatter(logging.Formatter(
 app.logger.addHandler(file_handler)
 
 # Assuming you are defining socket routes under '/socket.io/'
-CORS(app, resources={r"/*": {"origins": "*"}, r"/socket.io/*": {"origins": ""}})
-
+CORS(app, resources={r"/*": {"origins": "*"},
+     r"/socket.io/*": {"origins": ""}})
 
 
 s3 = boto3.client('s3')
@@ -1927,6 +1927,11 @@ def get_myanimalcareneederform(phone):
 
 @socketio.on('send_message')
 def handle_message(data):
+    app.logger.info("Received a request to handle_message")
+
+    # Logging input data
+    app.logger.info(f"Input Data: {data}")
+
     # Get current timestamp
     createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -1939,20 +1944,25 @@ def handle_message(data):
 
     try:
         query = """INSERT INTO messages (sender_id, recipient_id, content, createtime) VALUES (%s, %s, %s, %s)"""
+        app.logger.info("About to execute database query")
         cur.execute(query, (sender_id, recipient_id, content, createtime))
         conn.commit()
+        app.logger.info("Database query executed successfully")
 
         # Add the timestamp to the data being broadcasted
         data['createtime'] = createtime
 
-        # Broadcast the message to all connected clients with timestamp included
+        # Logging before broadcasting
+        app.logger.info(f"Broadcasting message: {data}")
         socketio.emit('receive_message', data)
+        app.logger.info("Message broadcasted successfully")
 
     except Exception as e:
-        app.logger.error("Failed to add message to database.", e)
+        app.logger.error(f"Failed to add message to database. Exception: {e}")
         conn.rollback()
     finally:
         cur.close()
+        app.logger.info("End of handle_message function")
 
 
 if __name__ == "__main__":
