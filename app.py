@@ -38,6 +38,8 @@ file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
 app.logger.addHandler(file_handler)
 
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 
 s3 = boto3.client('s3')
 
