@@ -1,5 +1,5 @@
 from psycopg2.extras import DictCursor  # Assuming you are using psycopg2
-from flask import Flask, g, request, jsonify
+from flask import Flask, g, request, jsonify, render_template
 from flask_cors import CORS
 import psycopg2
 from psycopg2 import pool
@@ -14,6 +14,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import datetime
 import bcrypt
 import json
+from flask_socketio import SocketIO
+from datetime import datetime
 
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG,
@@ -22,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 app = Flask(__name__)
+
+socketio = SocketIO(app)
 
 app.logger.setLevel(logging.DEBUG)
 
@@ -1833,7 +1837,7 @@ def update_animalcareneeder_ad(id):
         app.logger.error(
             f"Error updating animal careneeder: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update animal careneeder"}), 500
-    
+
 
 @app.route("/api/all_animalcareneederform/<int:animalcareneederform_id>", methods=["GET"])
 def get_animalcareneederform_detail(animalcareneederform_id):
@@ -1874,5 +1878,77 @@ def get_animalcareneederform_detail(animalcareneederform_id):
         return jsonify({"error": "Failed to fetch animal careneeder form detail"}), 500
 
 
+@app.route("/api/myanimalcareneederform/<phone>", methods=["GET"])
+def get_myanimalcareneederform(phone):
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch the records related to the phone number from the animalcareneederform table
+        cursor.execute(
+            "SELECT * FROM animalcareneederform WHERE phone = %s ORDER BY id DESC", (phone,))
+        rows = cursor.fetchall()
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            return jsonify({"error": "Animal Careneeder Forms not found"}), 404
+
+        animalcareneederforms = [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "years_of_experience": row["years_of_experience"],
+                "age": row["age"],
+                "education": row["education"],
+                "gender": row["gender"],
+                "phone": row["phone"],
+                "imageurl": row["imageurl"],
+                "location": row["location"]
+            }
+            for row in rows
+        ]
+
+        return jsonify(animalcareneederforms)
+    except Exception as e:
+        app.logger.error(
+            f"Error fetching animal careneeder forms for phone {phone}", exc_info=True)
+        return jsonify({"error": "Failed to fetch animal careneeder forms"}), 500
+
+
+# Chatwindow endpoit for messages
+
+@socketio.on('send_message')
+def handle_message(data):
+    # Get current timestamp
+    createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    sender_id = data.get('sender_id')
+    recipient_id = data.get('recipient_id')
+    content = data.get('content')
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    try:
+        query = """INSERT INTO messages (sender_id, recipient_id, content, createtime) VALUES (%s, %s, %s, %s)"""
+        cur.execute(query, (sender_id, recipient_id, content, createtime))
+        conn.commit()
+        
+        # Add the timestamp to the data being broadcasted
+        data['createtime'] = createtime
+
+        # Broadcast the message to all connected clients with timestamp included
+        socketio.emit('receive_message', data)
+
+    except Exception as e:
+        print("Failed to add message to database.", e)
+        conn.rollback()
+    finally:
+        cur.close()
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    socketio.run(app, debug=True)
