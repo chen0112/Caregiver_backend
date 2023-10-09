@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins=[
+                    "http://localhost:5173", "https://nginx.yongxinguanai.com"], transports=['polling', 'websocket'])
+
 
 app.logger.setLevel(logging.DEBUG)
 
@@ -37,7 +39,7 @@ file_handler.setFormatter(logging.Formatter(
 app.logger.addHandler(file_handler)
 
 # Assuming you are defining socket routes under '/socket.io/'
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": "*"} })
 
 
 s3 = boto3.client('s3')
