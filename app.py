@@ -25,9 +25,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-socketio = SocketIO(app, cors_allowed_origins=[
-                    "http://localhost:5173", "https://nginx.yongxinguanai.com"], transports=['polling', 'websocket'])
-
+socketio = SocketIO(app)
 
 app.logger.setLevel(logging.DEBUG)
 
@@ -39,8 +37,7 @@ file_handler.setFormatter(logging.Formatter(
 app.logger.addHandler(file_handler)
 
 # Assuming you are defining socket routes under '/socket.io/'
-CORS(app, resources={r"/*": {"origins": "*"},
-     r"/socket.io/*": {"origins": ""}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 s3 = boto3.client('s3')
@@ -1923,7 +1920,7 @@ def get_myanimalcareneederform(phone):
         return jsonify({"error": "Failed to fetch animal careneeder forms"}), 500
 
 
-# Chatwindow endpoit for messages
+# Chatwindow endpoint for messages
 
 @socketio.on('send_message')
 def handle_message(data):
