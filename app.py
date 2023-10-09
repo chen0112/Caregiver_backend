@@ -29,8 +29,7 @@ app = Flask(__name__)
 # Setting up CORS for Flask app
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-socketio = SocketIO(app, cors_allowed_origins=[
-                    "http://localhost:5173", "https://yongxinguanai.com", "https://www.yongxinguanai.com"], engineio_logger=True)
+socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True)
 
 app.logger.setLevel(logging.DEBUG)
 
