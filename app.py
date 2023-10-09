@@ -1,5 +1,5 @@
 from psycopg2.extras import DictCursor  # Assuming you are using psycopg2
-from flask import Flask, g, request, jsonify, render_template
+from flask import Flask, g, request, jsonify
 from flask_cors import CORS
 import psycopg2
 from psycopg2 import pool
@@ -15,6 +15,7 @@ import datetime
 import bcrypt
 import json
 from datetime import datetime
+from flask_socketio import SocketIO
 
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG,
@@ -24,9 +25,12 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# socketio = SocketIO(app, cors_allowed_origins=[
-#                     "http://localhost:5173", "https://nginx.yongxinguanai.com"], transports=['polling', 'websocket'])
 
+# Setting up CORS for Flask app
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+socketio = SocketIO(app, cors_allowed_origins=[
+                    "http://localhost:5173", "https://yongxinguanai.com", "https://www.yongxinguanai.com"])
 
 app.logger.setLevel(logging.DEBUG)
 
@@ -36,9 +40,6 @@ file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
 app.logger.addHandler(file_handler)
-
-# Assuming you are defining socket routes under '/socket.io/'
-CORS(app, resources={r"/*": {"origins": "*"} })
 
 
 s3 = boto3.client('s3')
@@ -1919,8 +1920,48 @@ def get_myanimalcareneederform(phone):
             f"Error fetching animal careneeder forms for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch animal careneeder forms"}), 500    
 
+# Chatwindow endpoint for messages
+
+@socketio.on('send_message')
+def handle_message(data):
+    app.logger.info("Received a request to handle_message")
+
+    # Logging input data
+    app.logger.info(f"Input Data: {data}")
+
+    # Get current timestamp
+    createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    sender_id = data.get('sender_id')
+    recipient_id = data.get('recipient_id')
+    content = data.get('content')
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    try:
+        query = """INSERT INTO messages (sender_id, recipient_id, content, createtime) VALUES (%s, %s, %s, %s)"""
+        app.logger.info("About to execute database query")
+        cur.execute(query, (sender_id, recipient_id, content, createtime))
+        conn.commit()
+        app.logger.info("Database query executed successfully")
+
+        # Add the timestamp to the data being broadcasted
+        data['createtime'] = createtime
+
+        # Logging before broadcasting
+        app.logger.info(f"Broadcasting message: {data}")
+        socketio.emit('receive_message', data)
+        app.logger.info("Message broadcasted successfully")
+
+    except Exception as e:
+        app.logger.error(f"Failed to add message to database. Exception: {e}")
+        conn.rollback()
+    finally:
+        cur.close()
+        app.logger.info("End of handle_message function")
 
 if __name__ == "__main__":
-    app.run(debug=True)
-    # socketio.run(app, debug=True)
+    # app.run(debug=True)
+    socketio.run(app, debug=True)
 
