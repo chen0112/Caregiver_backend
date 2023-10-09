@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-socketio = SocketIO(app, cors_allowed_origins=[
-                    "http://localhost:5173", "https://nginx.yongxinguanai.com"], transports=['polling', 'websocket'])
+# socketio = SocketIO(app, cors_allowed_origins=[
+#                     "http://localhost:5173", "https://nginx.yongxinguanai.com"], transports=['polling', 'websocket'])
 
 
 app.logger.setLevel(logging.DEBUG)
@@ -1924,45 +1924,47 @@ def get_myanimalcareneederform(phone):
 
 # Chatwindow endpoint for messages
 
-@socketio.on('send_message')
-def handle_message(data):
-    app.logger.info("Received a request to handle_message")
+# @socketio.on('send_message')
+# def handle_message(data):
+#     app.logger.info("Received a request to handle_message")
 
-    # Logging input data
-    app.logger.info(f"Input Data: {data}")
+#     # Logging input data
+#     app.logger.info(f"Input Data: {data}")
 
-    # Get current timestamp
-    createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+#     # Get current timestamp
+#     createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    sender_id = data.get('sender_id')
-    recipient_id = data.get('recipient_id')
-    content = data.get('content')
+#     sender_id = data.get('sender_id')
+#     recipient_id = data.get('recipient_id')
+#     content = data.get('content')
 
-    conn = get_db()
-    cur = conn.cursor()
+#     conn = get_db()
+#     cur = conn.cursor()
 
-    try:
-        query = """INSERT INTO messages (sender_id, recipient_id, content, createtime) VALUES (%s, %s, %s, %s)"""
-        app.logger.info("About to execute database query")
-        cur.execute(query, (sender_id, recipient_id, content, createtime))
-        conn.commit()
-        app.logger.info("Database query executed successfully")
+#     try:
+#         query = """INSERT INTO messages (sender_id, recipient_id, content, createtime) VALUES (%s, %s, %s, %s)"""
+#         app.logger.info("About to execute database query")
+#         cur.execute(query, (sender_id, recipient_id, content, createtime))
+#         conn.commit()
+#         app.logger.info("Database query executed successfully")
 
-        # Add the timestamp to the data being broadcasted
-        data['createtime'] = createtime
+#         # Add the timestamp to the data being broadcasted
+#         data['createtime'] = createtime
 
-        # Logging before broadcasting
-        app.logger.info(f"Broadcasting message: {data}")
-        socketio.emit('receive_message', data)
-        app.logger.info("Message broadcasted successfully")
+#         # Logging before broadcasting
+#         app.logger.info(f"Broadcasting message: {data}")
+#         socketio.emit('receive_message', data)
+#         app.logger.info("Message broadcasted successfully")
 
-    except Exception as e:
-        app.logger.error(f"Failed to add message to database. Exception: {e}")
-        conn.rollback()
-    finally:
-        cur.close()
-        app.logger.info("End of handle_message function")
+#     except Exception as e:
+#         app.logger.error(f"Failed to add message to database. Exception: {e}")
+#         conn.rollback()
+#     finally:
+#         cur.close()
+#         app.logger.info("End of handle_message function")
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    app.run(debug=True)
+    # socketio.run(app, debug=True)
+
