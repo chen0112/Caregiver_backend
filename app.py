@@ -17,7 +17,7 @@ import json
 from datetime import datetime
 
 # from flask_socketio import SocketIO
-from ably import AblyRest
+from ably import AblyRealtime
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
@@ -26,7 +26,8 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-ably = AblyRest('iP9ymA.8JTs-Q:XJkf6tU_20Q-62UkTi1gbXXD21SHtpygPTPnA7GX0aY')
+ably = AblyRealtime(
+    'iP9ymA.8JTs-Q:XJkf6tU_20Q-62UkTi1gbXXD21SHtpygPTPnA7GX0aY')
 channel = ably.channels.get('your-channel-name')
 
 # Setting up CORS for Flask app
@@ -1844,6 +1845,7 @@ def update_animalcareneeder_ad(id):
             f"Error updating animal careneeder: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update animal careneeder"}), 500
 
+
 @app.route("/api/all_animalcareneederform/<int:animalcareneederform_id>", methods=["GET"])
 def get_animalcareneederform_detail(animalcareneederform_id):
     try:
@@ -1920,30 +1922,38 @@ def get_myanimalcareneederform(phone):
     except Exception as e:
         app.logger.error(
             f"Error fetching animal careneeder forms for phone {phone}", exc_info=True)
-        return jsonify({"error": "Failed to fetch animal careneeder forms"}), 500    
+        return jsonify({"error": "Failed to fetch animal careneeder forms"}), 500
+
 
 # Chatwindow endpoint for messages
 
-@app.route('/send_message', methods=['POST'])
+@app.route('/handle_message', methods=['POST'])
 def handle_message():
-    app.logger.info("Received a request to handle_message")
-
-    data = request.json
-
-    # Logging input data
-    app.logger.info(f"Input Data: {data}")
-
-    # Get current timestamp
-    createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-    sender_id = data.get('sender_id')
-    recipient_id = data.get('recipient_id')
-    content = data.get('content')
-
-    conn = get_db()
-    cur = conn.cursor()
-
     try:
+        # Logging request
+        app.logger.info("Received a request to handle_message")
+
+        # Validate input data
+        if not request.is_json:
+            return jsonify(success=False, message="Invalid data format"), 400
+
+        data = request.json
+        app.logger.info(f"Input Data: {data}")
+
+        sender_id = data.get('sender_id')
+        recipient_id = data.get('recipient_id')
+        content = data.get('content')
+
+        # Check if necessary data is provided
+        if not all([sender_id, recipient_id, content]):
+            return jsonify(success=False, message="Missing required data"), 400
+
+        # Get current timestamp
+        createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        conn = get_db()
+        cur = conn.cursor()
+
         query = """INSERT INTO messages (sender_id, recipient_id, content, createtime) VALUES (%s, %s, %s, %s)"""
         app.logger.info("About to execute database query")
         cur.execute(query, (sender_id, recipient_id, content, createtime))
@@ -1958,16 +1968,17 @@ def handle_message():
         channel.publish('receive_message', data)
         app.logger.info("Message broadcasted successfully")
 
+        return jsonify(success=True)
+
     except Exception as e:
-        app.logger.error(f"Failed to add message to database. Exception: {e}")
-        conn.rollback()
+        app.logger.error(f"Error occurred: {e}")
+        return jsonify(success=False, message="An error occurred while processing the request"), 500
+
     finally:
         cur.close()
         app.logger.info("End of handle_message function")
-    
-    return jsonify(success=True)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
     # socketio.run(app, debug=True)
-
