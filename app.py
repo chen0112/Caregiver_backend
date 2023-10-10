@@ -1,6 +1,6 @@
 from psycopg2.extras import DictCursor  # Assuming you are using psycopg2
 from flask import Flask, g, request, jsonify
-from flask_cors import CORS
+# from flask_cors import CORS
 import psycopg2
 from psycopg2 import pool
 import boto3
@@ -16,6 +16,8 @@ import json
 from datetime import datetime
 from ably import AblyRealtime
 from asgiref.wsgi import WsgiToAsgi
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
 
 
 
@@ -24,44 +26,48 @@ logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=log
 logger = logging.getLogger(__name__)
 
 
-app = Flask(__name__)
+flask_app = Flask(__name__)
 
-# Convert the Flask app to ASGI
-app = WsgiToAsgi(app)
+# Convert the Flask flask_app to ASGI
 
+middleware = [
+    Middleware(CORSMiddleware, allow_origins=["*"])
+]
+
+asgi_app = WsgiToAsgi(flask_app, middleware=middleware)
 
 ably = AblyRealtime(
     'iP9ymA.8JTs-Q:XJkf6tU_20Q-62UkTi1gbXXD21SHtpygPTPnA7GX0aY')
 channel = ably.channels.get('your-channel-name')
 
 # Setting up CORS for Flask app
-CORS(app, resources={r"/*": {"origins": "*"}})
+# CORS(app, resources={r"/*": {"origins": "*"}})
 
-app.logger.setLevel(logging.DEBUG)
+flask_app.logger.setLevel(logging.DEBUG)
 
 # Adding a file handler to write Flask's log messages to the same file
 file_handler = logging.FileHandler('/home/ubuntu/Caregiver_backend/app.log')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
-app.logger.addHandler(file_handler)
+flask_app.logger.addHandler(file_handler)
 
 
 s3 = boto3.client('s3')
 
 
-@app.route('/status')
+@flask_app.route('/status')
 def status():
-    app.logger.info('Status endpoint was called')
+    flask_app.logger.info('Status endpoint was called')
     return "Gunicorn is running good!", 200
 
 
-@app.route("/test_put", methods=["PUT"])
+@flask_app.route("/test_put", methods=["PUT"])
 def test_put():
     return jsonify({"success": "PUT request successful"}), 200
 
 
-@app.route("/api/register", methods=["POST"])
+@flask_app.route("/api/register", methods=["POST"])
 def register():
     try:
         # Get the JSON data from the request
@@ -95,11 +101,11 @@ def register():
         return jsonify({"success": True, "message": "创建账号成功!", "id": new_user_id}), 201
 
     except Exception as e:
-        app.logger.info(f"Error registering user: {str(e)}", exc_info=True)
+        flask_app.logger.info(f"Error registering user: {str(e)}", exc_info=True)
         return jsonify({"error": "创建失败！"}), 500
 
 
-@app.route('/api/signin', methods=['POST'])
+@flask_app.route('/api/signin', methods=['POST'])
 def sign_in():
     phone = request.json['phone']
     passcode = request.json['passcode']
@@ -146,7 +152,7 @@ def sign_in():
         return jsonify(success=False, message='电话号码不正确'), 404
 
 
-@app.route("/api/mycaregiver/<phone>", methods=["GET"])
+@flask_app.route("/api/mycaregiver/<phone>", methods=["GET"])
 def get_mycaregivers(phone):
     try:
         # Connect to the PostgreSQL database
@@ -181,14 +187,14 @@ def get_mycaregivers(phone):
 
         return jsonify(caregivers)
     except Exception as e:
-        app.logger.error(
+        flask_app.logger.error(
             f"Error fetching caregivers for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch caregivers"}), 500
 
 
-@app.route("/api/mycaregiver/<int:id>", methods=["PUT"])
+@flask_app.route("/api/mycaregiver/<int:id>", methods=["PUT"])
 def update_caregiver(id):
-    app.logger.debug(f"Entering update_caregiver for id {id}")
+    flask_app.logger.debug(f"Entering update_caregiver for id {id}")
     try:
         data = request.get_json()
 
@@ -210,8 +216,8 @@ def update_caregiver(id):
             else:
                 values.append(value)
 
-        app.logger.debug(f"Serialized location: {json.dumps(value)}")
-        app.logger.debug(f"Prepared values for SQL update: {values}")
+        flask_app.logger.debug(f"Serialized location: {json.dumps(value)}")
+        flask_app.logger.debug(f"Prepared values for SQL update: {values}")
 
         # Construct the UPDATE query
         update_query = "UPDATE caregivers SET " + \
@@ -220,8 +226,8 @@ def update_caregiver(id):
         # Execute the UPDATE query with the values
         cursor.execute(update_query, values)
 
-        app.logger.info(f"Received data: {data}")
-        app.logger.info(f"Executing query: {update_query}")
+        flask_app.logger.info(f"Received data: {data}")
+        flask_app.logger.info(f"Executing query: {update_query}")
 
         # Commit the changes and close the connection
         conn.commit()
@@ -230,13 +236,13 @@ def update_caregiver(id):
         return jsonify({"success": "更新成功"}), 200
 
     except Exception as e:
-        app.logger.error(f"Error updating caregiver: {str(e)}", exc_info=True)
+        flask_app.logger.error(f"Error updating caregiver: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update caregiver"}), 500
 
 
-@app.route('/api/all_caregivers', methods=['GET'])
+@flask_app.route('/api/all_caregivers', methods=['GET'])
 def get_all_caregivers():
-    app.logger.info("---------------Entering GET /api/all_caregivers request")
+    flask_app.logger.info("---------------Entering GET /api/all_caregivers request")
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
@@ -245,13 +251,13 @@ def get_all_caregivers():
         # Fetch caregivers from the database
         cursor.execute("SELECT * FROM caregivers ORDER BY id DESC")
         rows = cursor.fetchall()
-        app.logger.debug(f"Fetched {len(rows)} caregivers from the database")
+        flask_app.logger.debug(f"Fetched {len(rows)} caregivers from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
-            app.logger.warning("No caregivers found in the database")
+            flask_app.logger.warning("No caregivers found in the database")
             return jsonify({"error": "Problem of fetching caregivers"}), 404
 
         # Directly convert the rows into JSON
@@ -274,18 +280,18 @@ def get_all_caregivers():
             for row in rows
         ]
 
-        app.logger.debug("Successfully processed all caregivers data")
+        flask_app.logger.debug("Successfully processed all caregivers data")
 
         response = make_response(jsonify(caregivers))
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
         response.headers['Pragma'] = 'no-cache'
         return response
     except Exception as e:
-        app.logger.error("Error fetching all caregivers", exc_info=True)
+        flask_app.logger.error("Error fetching all caregivers", exc_info=True)
         return jsonify({"error": "Failed to fetch all caregivers"}), 500
 
 
-@app.route('/api/upload', methods=['POST'])
+@flask_app.route('/api/upload', methods=['POST'])
 def upload_file():
     try:
         if 'file' not in request.files:
@@ -331,7 +337,7 @@ def get_db():
     return g.db
 
 
-@app.teardown_appcontext
+@flask_app.teardown_appcontext
 def close_db(error):
     # If this request used the database, close the used connection
     db = g.pop('db', None)
@@ -340,7 +346,7 @@ def close_db(error):
         db_pool.putconn(db)
 
 
-@app.route("/api/all_caregivers/<int:caregiver_id>", methods=["GET"])
+@flask_app.route("/api/all_caregivers/<int:caregiver_id>", methods=["GET"])
 def get_caregiver_detail(caregiver_id):
     try:
         # Connect to the PostgreSQL database
@@ -380,7 +386,7 @@ def get_caregiver_detail(caregiver_id):
         return jsonify({"error": "Failed to fetch caregiver detail"}), 500
 
 
-@app.route("/api/all_caregivers", methods=["POST"])
+@flask_app.route("/api/all_caregivers", methods=["POST"])
 def add_caregiver():
     try:
         data = request.get_json()
@@ -441,7 +447,7 @@ def add_caregiver():
         return jsonify({"error": "Failed to add caregiver"}), 500
 
 
-@app.route("/api/all_careneeders", methods=["POST"])
+@flask_app.route("/api/all_careneeders", methods=["POST"])
 def add_careneeder():
     try:
         data = request.get_json()
@@ -506,16 +512,16 @@ def add_careneeder():
     except Exception as e:  # Could also catch specific exceptions like psycopg2.DatabaseError
         if conn:
             conn.rollback()  # Rolling back in case of an error
-        app.logger.error(f"Error adding careneeder: {str(e)}", exc_info=True)
+        flask_app.logger.error(f"Error adding careneeder: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add careneeder"}), 500
     finally:
         if conn:
             conn.close()  # Ensure that the connection is closed or returned to the pool
 
 
-@app.route('/api/all_careneeders', methods=['GET'])
+@flask_app.route('/api/all_careneeders', methods=['GET'])
 def get_all_careneeders():
-    app.logger.info("---------------Entering GET /api/all_careneeders request")
+    flask_app.logger.info("---------------Entering GET /api/all_careneeders request")
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
@@ -524,13 +530,13 @@ def get_all_careneeders():
         # Fetch careneeders from the database
         cursor.execute("SELECT * FROM careneeder ORDER BY id DESC")
         rows = cursor.fetchall()
-        app.logger.debug(f"Fetched {len(rows)} careneeders from the database")
+        flask_app.logger.debug(f"Fetched {len(rows)} careneeders from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
-            app.logger.warning("No careneeders found in the database")
+            flask_app.logger.warning("No careneeders found in the database")
             return jsonify({"error": "Problem of fetching careneeders"}), 404
 
         # Directly convert the rows into JSON
@@ -559,18 +565,18 @@ def get_all_careneeders():
             for row in rows
         ]
 
-        app.logger.debug("Successfully processed all careneeders data")
+        flask_app.logger.debug("Successfully processed all careneeders data")
 
         response = make_response(jsonify(careneeders))
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
         response.headers['Pragma'] = 'no-cache'
         return response
     except Exception as e:
-        app.logger.error("Error fetching all careneeders", exc_info=True)
+        flask_app.logger.error("Error fetching all careneeders", exc_info=True)
         return jsonify({"error": "Failed to fetch all careneeders"}), 500
 
 
-@app.route("/api/all_careneeders/<int:careneeder_id>", methods=["GET"])
+@flask_app.route("/api/all_careneeders/<int:careneeder_id>", methods=["GET"])
 def get_careneeder_detail(careneeder_id):
     try:
         # Connect to the PostgreSQL database
@@ -616,7 +622,7 @@ def get_careneeder_detail(careneeder_id):
         return jsonify({"error": "Failed to fetch careneeder detail"}), 500
 
 
-@app.route("/api/mycareneeder/<phone>", methods=["GET"])
+@flask_app.route("/api/mycareneeder/<phone>", methods=["GET"])
 def get_mycareneeders(phone):
     try:
         # Connect to the PostgreSQL database
@@ -658,14 +664,14 @@ def get_mycareneeders(phone):
 
         return jsonify(careneeders)
     except Exception as e:
-        app.logger.error(
+        flask_app.logger.error(
             f"Error fetching careneeders for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch careneeders"}), 500
 
 
-@app.route("/api/mycaregiver/<int:id>/ad", methods=["PUT"])
+@flask_app.route("/api/mycaregiver/<int:id>/ad", methods=["PUT"])
 def update_caregiver_ad(id):
-    app.logger.debug(f"Entering update_caregiver for id {id}")
+    flask_app.logger.debug(f"Entering update_caregiver for id {id}")
     try:
         data = request.get_json()
 
@@ -677,7 +683,7 @@ def update_caregiver_ad(id):
         columns = ["title", "description"]
         values = [data.get(field, None) for field in columns]
 
-        app.logger.debug(f"Prepared values for SQL update: {values}")
+        flask_app.logger.debug(f"Prepared values for SQL update: {values}")
 
         # Construct the UPDATE query
         update_query = "UPDATE caregiverads SET " + \
@@ -687,8 +693,8 @@ def update_caregiver_ad(id):
         # Execute the UPDATE query with the values
         cursor.execute(update_query, values)
 
-        app.logger.info(f"Received data: {data}")
-        app.logger.info(f"Executing query: {update_query}")
+        flask_app.logger.info(f"Received data: {data}")
+        flask_app.logger.info(f"Executing query: {update_query}")
 
         # Commit the changes and close the connection
         conn.commit()
@@ -697,17 +703,17 @@ def update_caregiver_ad(id):
         return jsonify({"success": "更新成功"}), 200
 
     except Exception as e:
-        app.logger.error(f"Error updating caregiver: {str(e)}", exc_info=True)
+        flask_app.logger.error(f"Error updating caregiver: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update caregiver"}), 500
 
 
-@app.route("/api/careneeder_schedule", methods=["POST"])
+@flask_app.route("/api/careneeder_schedule", methods=["POST"])
 def add_schedule():
     try:
         data = request.get_json()
 
         # Log the received data for debugging
-        app.logger.debug("Received data: %s", data)
+        flask_app.logger.debug("Received data: %s", data)
 
         # Validate that careneeder_id is provided
         if "careneeder_id" not in data:
@@ -759,16 +765,16 @@ def add_schedule():
     except Exception as e:
         if conn:
             conn.rollback()
-        app.logger.error(f"Error adding schedule: {str(e)}", exc_info=True)
+        flask_app.logger.error(f"Error adding schedule: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add schedule"}), 500
     finally:
         if conn:
             conn.close()
 
 
-@app.route("/api/mycareneeder/<int:id>/ad", methods=["PUT"])
+@flask_app.route("/api/mycareneeder/<int:id>/ad", methods=["PUT"])
 def update_careneeder_ad(id):
-    app.logger.debug(f"Entering update_careneeder for id {id}")
+    flask_app.logger.debug(f"Entering update_careneeder for id {id}")
     try:
         data = request.get_json()
 
@@ -780,7 +786,7 @@ def update_careneeder_ad(id):
         columns = ["title", "description"]
         values = [data.get(field, None) for field in columns]
 
-        app.logger.debug(f"Prepared values for SQL update: {values}")
+        flask_app.logger.debug(f"Prepared values for SQL update: {values}")
 
         # Construct the UPDATE query
         update_query = "UPDATE careneederads SET " + \
@@ -790,8 +796,8 @@ def update_careneeder_ad(id):
         # Execute the UPDATE query with the values
         cursor.execute(update_query, values)
 
-        app.logger.info(f"Received data: {data}")
-        app.logger.info(f"Executing query: {update_query}")
+        flask_app.logger.info(f"Received data: {data}")
+        flask_app.logger.info(f"Executing query: {update_query}")
 
         # Commit the changes and close the connection
         conn.commit()
@@ -800,11 +806,11 @@ def update_careneeder_ad(id):
         return jsonify({"success": "更新成功"}), 200
 
     except Exception as e:
-        app.logger.error(f"Error updating careneeder: {str(e)}", exc_info=True)
+        flask_app.logger.error(f"Error updating careneeder: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update careneeder"}), 500
 
 
-@app.route("/api/careneeder_ads", methods=["POST"])
+@flask_app.route("/api/careneeder_ads", methods=["POST"])
 def add_careneeder_ad():
     try:
         data = request.get_json()
@@ -854,7 +860,7 @@ def add_careneeder_ad():
     except Exception as e:
         if conn:
             conn.rollback()  # Rolling back in case of an error
-        app.logger.error(
+        flask_app.logger.error(
             f"Error adding careneeder ad: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add careneeder ad"}), 500
     finally:
@@ -862,9 +868,9 @@ def add_careneeder_ad():
             conn.close()
 
 
-@app.route('/api/all_careneederschedule', methods=['GET'])
+@flask_app.route('/api/all_careneederschedule', methods=['GET'])
 def get_all_careneederschedule():
-    app.logger.info("Entering GET /api/all_careneederschedule request")
+    flask_app.logger.info("Entering GET /api/all_careneederschedule request")
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
@@ -873,14 +879,14 @@ def get_all_careneederschedule():
         # Fetch careneederschedule data from the database
         cursor.execute("SELECT * FROM careneederschedule ORDER BY id DESC")
         rows = cursor.fetchall()
-        app.logger.debug(
+        flask_app.logger.debug(
             f"Fetched {len(rows)} careneederschedule records from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
-            app.logger.warning(
+            flask_app.logger.warning(
                 "No careneederschedule records found in the database")
             return jsonify({"error": "No careneederschedule data available"}), 404
 
@@ -888,19 +894,19 @@ def get_all_careneederschedule():
 
         careneederschedule = [dict(row) for row in rows]
 
-        app.logger.debug("Successfully processed all careneederschedule data")
+        flask_app.logger.debug("Successfully processed all careneederschedule data")
 
         response = make_response(jsonify(careneederschedule))
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
         response.headers['Pragma'] = 'no-cache'
         return response
     except Exception as e:
-        app.logger.error(
+        flask_app.logger.error(
             "Error fetching all careneederschedule", exc_info=True)
         return jsonify({"error": "Failed to fetch all careneederschedule"}), 500
 
 
-@app.route("/api/all_careneederads", methods=["GET"])
+@flask_app.route("/api/all_careneederads", methods=["GET"])
 def get_careneeder_ads():
     conn = None
     try:
@@ -917,21 +923,21 @@ def get_careneeder_ads():
         rows = cursor.fetchall()
         cursor.close()
 
-        app.logger.debug(
+        flask_app.logger.debug(
             f"Fetched {len(rows)} careneederads records from the database")
 
         # Check the data type of the first row for debugging
         if rows:
-            app.logger.debug(f"First row data type: {type(rows[0])}")
+            flask_app.logger.debug(f"First row data type: {type(rows[0])}")
 
         if not rows:
-            app.logger.warning(
+            flask_app.logger.warning(
                 "No careneederads records found in the database")
             return jsonify({"error": "No careneederads data available"}), 404
 
         careneederads = [dict(row) for row in rows]
 
-        app.logger.debug("Successfully processed all careneederads data")
+        flask_app.logger.debug("Successfully processed all careneederads data")
 
         response = make_response(jsonify(careneederads))
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
@@ -941,7 +947,7 @@ def get_careneeder_ads():
     except Exception as e:
         if conn:
             conn.rollback()  # Rolling back in case of an error
-        app.logger.error(
+        flask_app.logger.error(
             f"Error fetching careneeder ads: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to fetch careneeder ads"}), 500
 
@@ -950,7 +956,7 @@ def get_careneeder_ads():
             conn.close()
 
 
-@app.route("/api/caregiver_ads", methods=["POST"])
+@flask_app.route("/api/caregiver_ads", methods=["POST"])
 def add_caregiver_ad():
     try:
         data = request.get_json()
@@ -1000,14 +1006,14 @@ def add_caregiver_ad():
     except Exception as e:
         if conn:
             conn.rollback()  # Rolling back in case of an error
-        app.logger.error(f"Error adding caregiver ad: {str(e)}", exc_info=True)
+        flask_app.logger.error(f"Error adding caregiver ad: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add caregiver ad"}), 500
     finally:
         if conn:
             conn.close()
 
 
-@app.route("/api/all_caregiverads", methods=["GET"])
+@flask_app.route("/api/all_caregiverads", methods=["GET"])
 def get_caregiver_ads():
     try:
         # Connect to the PostgreSQL database
@@ -1023,21 +1029,21 @@ def get_caregiver_ads():
         rows = cursor.fetchall()
         cursor.close()
 
-        app.logger.debug(
+        flask_app.logger.debug(
             f"Fetched {len(rows)} caregiverads records from the database")
 
         # Check the data type of the first row for debugging
         if rows:
-            app.logger.debug(f"First row data type: {type(rows[0])}")
+            flask_app.logger.debug(f"First row data type: {type(rows[0])}")
 
         if not rows:
-            app.logger.warning(
+            flask_app.logger.warning(
                 "No caregiverads records found in the database")
             return jsonify({"error": "No caregiverads data available"}), 404
 
         caregiverads = [dict(row) for row in rows]
 
-        app.logger.debug("Successfully processed all caregiverads data")
+        flask_app.logger.debug("Successfully processed all caregiverads data")
 
         response = make_response(jsonify(caregiverads))
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
@@ -1047,7 +1053,7 @@ def get_caregiver_ads():
     except Exception as e:
         if conn:
             conn.rollback()  # Rolling back in case of an error
-        app.logger.error(
+        flask_app.logger.error(
             f"Error fetching caregiver ads: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to fetch caregiver ads"}), 500
 
@@ -1056,7 +1062,7 @@ def get_caregiver_ads():
             conn.close()
 
 
-@app.route("/api/animalcaregiver_details", methods=["POST"])
+@flask_app.route("/api/animalcaregiver_details", methods=["POST"])
 def add_animalcaregiver_detail():
     conn = None
     try:
@@ -1116,7 +1122,7 @@ def add_animalcaregiver_detail():
     except Exception as e:
         if conn:
             conn.rollback()  # Rolling back in case of an error
-        app.logger.error(
+        flask_app.logger.error(
             f"Error adding animalcaregiver detail: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add animalcaregiver detail"}), 500
     finally:
@@ -1124,7 +1130,7 @@ def add_animalcaregiver_detail():
             conn.close()
 
 
-@app.route("/api/all_animalcaregivers", methods=["POST"])
+@flask_app.route("/api/all_animalcaregivers", methods=["POST"])
 def add_animalcaregiver():
     try:
         data = request.get_json()
@@ -1184,7 +1190,7 @@ def add_animalcaregiver():
         return jsonify({"error": "Failed to add animalcaregiverform"}), 500
 
 
-@app.route("/api/animalcaregiver_ads", methods=["POST"])
+@flask_app.route("/api/animalcaregiver_ads", methods=["POST"])
 def add_animal_caregiver_ad():
     conn = None
     try:
@@ -1239,9 +1245,9 @@ def add_animal_caregiver_ad():
             conn.close()
 
 
-@app.route('/api/all_animalcaregivers', methods=['GET'])
+@flask_app.route('/api/all_animalcaregivers', methods=['GET'])
 def get_all_animal_caregivers():
-    app.logger.info(
+    flask_app.logger.info(
         "---------------Entering GET /api/all_animal_caregivers request")
     try:
         # Connect to the PostgreSQL database
@@ -1251,14 +1257,14 @@ def get_all_animal_caregivers():
         # Fetch animal caregivers from the database
         cursor.execute("SELECT * FROM animalcaregiverform ORDER BY id DESC")
         rows = cursor.fetchall()
-        app.logger.debug(
+        flask_app.logger.debug(
             f"Fetched {len(rows)} animal caregivers from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
-            app.logger.warning("No animal caregivers found in the database")
+            flask_app.logger.warning("No animal caregivers found in the database")
             return jsonify({"error": "Problem of fetching animal caregivers"}), 404
 
         # Directly convert the rows into JSON
@@ -1280,20 +1286,20 @@ def get_all_animal_caregivers():
             for row in rows
         ]
 
-        app.logger.debug("Successfully processed all animal caregivers data")
+        flask_app.logger.debug("Successfully processed all animal caregivers data")
 
         response = make_response(jsonify(animal_caregivers))
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
         response.headers['Pragma'] = 'no-cache'
         return response
     except Exception as e:
-        app.logger.error("Error fetching all animal caregivers", exc_info=True)
+        flask_app.logger.error("Error fetching all animal caregivers", exc_info=True)
         return jsonify({"error": "Failed to fetch all animal caregivers"}), 500
 
 
-@app.route('/api/all_animal_caregivers_details', methods=['GET'])
+@flask_app.route('/api/all_animal_caregivers_details', methods=['GET'])
 def get_all_animal_caregivers_details():
-    app.logger.info(
+    flask_app.logger.info(
         "---------------Entering GET /api/all_animal_caregivers details request")
     try:
         # Connect to the PostgreSQL database
@@ -1303,14 +1309,14 @@ def get_all_animal_caregivers_details():
         # Fetch animal caregivers from the database
         cursor.execute("SELECT * FROM animalcaregiver ORDER BY id DESC")
         rows = cursor.fetchall()
-        app.logger.debug(
+        flask_app.logger.debug(
             f"Fetched {len(rows)} animal caregivers details from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
-            app.logger.warning(
+            flask_app.logger.warning(
                 "No animal caregivers details found in the database")
             return jsonify({"error": "Problem fetching animal caregivers details"}), 404
 
@@ -1326,7 +1332,7 @@ def get_all_animal_caregivers_details():
             for row in rows
         ]
 
-        app.logger.debug(
+        flask_app.logger.debug(
             "Successfully processed all animal caregivers details data")
 
         response = make_response(jsonify(animal_caregivers))
@@ -1335,12 +1341,12 @@ def get_all_animal_caregivers_details():
         return response
 
     except Exception as e:
-        app.logger.error(
+        flask_app.logger.error(
             "Error fetching all animal caregivers details", exc_info=True)
         return jsonify({"error": "Failed to fetch all animal caregivers details"}), 500
 
 
-@app.route('/api/all_animal_caregiver_ads', methods=['GET'])
+@flask_app.route('/api/all_animal_caregiver_ads', methods=['GET'])
 def get_all_animal_caregiver_ads():
     try:
         conn = get_db()
@@ -1373,7 +1379,7 @@ def get_all_animal_caregiver_ads():
         return jsonify({"error": "Failed to fetch animal caregiver ads"}), 500
 
 
-@app.route("/api/all_animalcaregiverform/<int:animalcaregiverform_id>", methods=["GET"])
+@flask_app.route("/api/all_animalcaregiverform/<int:animalcaregiverform_id>", methods=["GET"])
 def get_animalcaregiverform_detail(animalcaregiverform_id):
     try:
         # Connect to the PostgreSQL database
@@ -1412,7 +1418,7 @@ def get_animalcaregiverform_detail(animalcaregiverform_id):
         return jsonify({"error": "Failed to fetch animal caregiver form detail"}), 500
 
 
-@app.route("/api/myanimalcaregiverform/<phone>", methods=["GET"])
+@flask_app.route("/api/myanimalcaregiverform/<phone>", methods=["GET"])
 def get_myanimalcaregiverform(phone):
     try:
         # Connect to the PostgreSQL database
@@ -1447,14 +1453,14 @@ def get_myanimalcaregiverform(phone):
 
         return jsonify(animalcaregiverforms)
     except Exception as e:
-        app.logger.error(
+        flask_app.logger.error(
             f"Error fetching animal caregiver forms for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch animal caregiver forms"}), 500
 
 
-@app.route("/api/myanimalcaregiver/<int:id>/ad", methods=["PUT"])
+@flask_app.route("/api/myanimalcaregiver/<int:id>/ad", methods=["PUT"])
 def update_animalcaregiver_ad(id):
-    app.logger.debug(f"Entering update_animalcaregiver for id {id}")
+    flask_app.logger.debug(f"Entering update_animalcaregiver for id {id}")
     try:
         data = request.get_json()
 
@@ -1466,7 +1472,7 @@ def update_animalcaregiver_ad(id):
         columns = ["title", "description"]
         values = [data.get(field, None) for field in columns]
 
-        app.logger.debug(f"Prepared values for SQL update: {values}")
+        flask_app.logger.debug(f"Prepared values for SQL update: {values}")
 
         # Construct the UPDATE query
         update_query = "UPDATE animalcaregiverads SET " + \
@@ -1476,8 +1482,8 @@ def update_animalcaregiver_ad(id):
         # Execute the UPDATE query with the values
         cursor.execute(update_query, values)
 
-        app.logger.info(f"Received data: {data}")
-        app.logger.info(f"Executing query: {update_query}")
+        flask_app.logger.info(f"Received data: {data}")
+        flask_app.logger.info(f"Executing query: {update_query}")
 
         # Commit the changes and close the connection
         conn.commit()
@@ -1486,12 +1492,12 @@ def update_animalcaregiver_ad(id):
         return jsonify({"success": "更新成功"}), 200
 
     except Exception as e:
-        app.logger.error(
+        flask_app.logger.error(
             f"Error updating animal caregiver: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update animal caregiver"}), 500
 
 
-@app.route("/api/all_animalcareneeders", methods=["POST"])
+@flask_app.route("/api/all_animalcareneeders", methods=["POST"])
 def add_animalcareneeder():
     try:
         data = request.get_json()
@@ -1551,7 +1557,7 @@ def add_animalcareneeder():
         return jsonify({"error": "Failed to add animalcareneederform"}), 500
 
 
-@app.route("/api/animalcareneeder_details", methods=["POST"])
+@flask_app.route("/api/animalcareneeder_details", methods=["POST"])
 def add_animalcareneeder_detail():
     conn = None
     try:
@@ -1611,7 +1617,7 @@ def add_animalcareneeder_detail():
     except Exception as e:
         if conn:
             conn.rollback()  # Rolling back in case of an error
-        app.logger.error(
+        flask_app.logger.error(
             f"Error adding animalcareneeder detail: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add animalcareneeder detail"}), 500
     finally:
@@ -1619,7 +1625,7 @@ def add_animalcareneeder_detail():
             conn.close()
 
 
-@app.route("/api/animalcareneeder_ads", methods=["POST"])
+@flask_app.route("/api/animalcareneeder_ads", methods=["POST"])
 def add_animal_careneeder_ad():
     conn = None
     try:
@@ -1674,9 +1680,9 @@ def add_animal_careneeder_ad():
             conn.close()
 
 
-@app.route('/api/all_animalcareneeders', methods=['GET'])
+@flask_app.route('/api/all_animalcareneeders', methods=['GET'])
 def get_all_animal_careneeders():
-    app.logger.info(
+    flask_app.logger.info(
         "---------------Entering GET /api/all_animal_careneeders request")
     try:
         # Connect to the PostgreSQL database
@@ -1686,14 +1692,14 @@ def get_all_animal_careneeders():
         # Fetch animal caregivers from the database
         cursor.execute("SELECT * FROM animalcareneederform ORDER BY id DESC")
         rows = cursor.fetchall()
-        app.logger.debug(
+        flask_app.logger.debug(
             f"Fetched {len(rows)} animal careneeders from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
-            app.logger.warning("No animal careneeders found in the database")
+            flask_app.logger.warning("No animal careneeders found in the database")
             return jsonify({"error": "Problem of fetching animal careneeders"}), 404
 
         # Directly convert the rows into JSON
@@ -1715,21 +1721,21 @@ def get_all_animal_careneeders():
             for row in rows
         ]
 
-        app.logger.debug("Successfully processed all animal careneeders data")
+        flask_app.logger.debug("Successfully processed all animal careneeders data")
 
         response = make_response(jsonify(animal_careneeders))
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
         response.headers['Pragma'] = 'no-cache'
         return response
     except Exception as e:
-        app.logger.error(
+        flask_app.logger.error(
             "Error fetching all animal careneeders", exc_info=True)
         return jsonify({"error": "Failed to fetch all animal careneeders"}), 500
 
 
-@app.route('/api/all_animal_careneeders_details', methods=['GET'])
+@flask_app.route('/api/all_animal_careneeders_details', methods=['GET'])
 def get_all_animal_careneeders_details():
-    app.logger.info(
+    flask_app.logger.info(
         "---------------Entering GET /api/all_animal_careneeders details request")
     try:
         # Connect to the PostgreSQL database
@@ -1739,14 +1745,14 @@ def get_all_animal_careneeders_details():
         # Fetch animal caregivers from the database
         cursor.execute("SELECT * FROM animalcareneeder ORDER BY id DESC")
         rows = cursor.fetchall()
-        app.logger.debug(
+        flask_app.logger.debug(
             f"Fetched {len(rows)} animal careneeders details from the database")
 
         # Close the connection
         cursor.close()
 
         if not rows:
-            app.logger.warning(
+            flask_app.logger.warning(
                 "No animal careneeders details found in the database")
             return jsonify({"error": "Problem fetching animal careneeders details"}), 404
 
@@ -1762,7 +1768,7 @@ def get_all_animal_careneeders_details():
             for row in rows
         ]
 
-        app.logger.debug(
+        flask_app.logger.debug(
             "Successfully processed all animal careneeders details data")
 
         response = make_response(jsonify(animal_caregivers))
@@ -1771,12 +1777,12 @@ def get_all_animal_careneeders_details():
         return response
 
     except Exception as e:
-        app.logger.error(
+        flask_app.logger.error(
             "Error fetching all animal careneeders details", exc_info=True)
         return jsonify({"error": "Failed to fetch all animal careneeders details"}), 500
 
 
-@app.route('/api/all_animal_careneeder_ads', methods=['GET'])
+@flask_app.route('/api/all_animal_careneeder_ads', methods=['GET'])
 def get_all_animal_careneeder_ads():
     try:
         conn = get_db()
@@ -1809,9 +1815,9 @@ def get_all_animal_careneeder_ads():
         return jsonify({"error": "Failed to fetch animal careneeder ads"}), 500
 
 
-@app.route("/api/myanimalcareneeder/<int:id>/ad", methods=["PUT"])
+@flask_app.route("/api/myanimalcareneeder/<int:id>/ad", methods=["PUT"])
 def update_animalcareneeder_ad(id):
-    app.logger.debug(f"Entering update_animalcareneeder for id {id}")
+    flask_app.logger.debug(f"Entering update_animalcareneeder for id {id}")
     try:
         data = request.get_json()
 
@@ -1823,7 +1829,7 @@ def update_animalcareneeder_ad(id):
         columns = ["title", "description"]
         values = [data.get(field, None) for field in columns]
 
-        app.logger.debug(f"Prepared values for SQL update: {values}")
+        flask_app.logger.debug(f"Prepared values for SQL update: {values}")
 
         # Construct the UPDATE query
         update_query = "UPDATE animalcareneederads SET " + \
@@ -1833,8 +1839,8 @@ def update_animalcareneeder_ad(id):
         # Execute the UPDATE query with the values
         cursor.execute(update_query, values)
 
-        app.logger.info(f"Received data: {data}")
-        app.logger.info(f"Executing query: {update_query}")
+        flask_app.logger.info(f"Received data: {data}")
+        flask_app.logger.info(f"Executing query: {update_query}")
 
         # Commit the changes and close the connection
         conn.commit()
@@ -1843,12 +1849,12 @@ def update_animalcareneeder_ad(id):
         return jsonify({"success": "更新成功"}), 200
 
     except Exception as e:
-        app.logger.error(
+        flask_app.logger.error(
             f"Error updating animal careneeder: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to update animal careneeder"}), 500
 
 
-@app.route("/api/all_animalcareneederform/<int:animalcareneederform_id>", methods=["GET"])
+@flask_app.route("/api/all_animalcareneederform/<int:animalcareneederform_id>", methods=["GET"])
 def get_animalcareneederform_detail(animalcareneederform_id):
     try:
         # Connect to the PostgreSQL database
@@ -1887,7 +1893,7 @@ def get_animalcareneederform_detail(animalcareneederform_id):
         return jsonify({"error": "Failed to fetch animal careneeder form detail"}), 500
 
 
-@app.route("/api/myanimalcareneederform/<phone>", methods=["GET"])
+@flask_app.route("/api/myanimalcareneederform/<phone>", methods=["GET"])
 def get_myanimalcareneederform(phone):
     try:
         # Connect to the PostgreSQL database
@@ -1922,25 +1928,25 @@ def get_myanimalcareneederform(phone):
 
         return jsonify(animalcareneederforms)
     except Exception as e:
-        app.logger.error(
+        flask_app.logger.error(
             f"Error fetching animal careneeder forms for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch animal careneeder forms"}), 500
 
 
 # Chatwindow endpoint for messages
 
-@app.route('/handle_message', methods=['POST'])
+@flask_app.route('/handle_message', methods=['POST'])
 def handle_message():
     try:
         # Logging request
-        app.logger.info("Received a request to handle_message")
+        flask_app.logger.info("Received a request to handle_message")
 
         # Validate input data
         if not request.is_json:
             return jsonify(success=False, message="Invalid data format"), 400
 
         data = request.json
-        app.logger.info(f"Input Data: {data}")
+        flask_app.logger.info(f"Input Data: {data}")
 
         sender_id = data.get('sender_id')
         recipient_id = data.get('recipient_id')
@@ -1957,30 +1963,30 @@ def handle_message():
         cur = conn.cursor()
 
         query = """INSERT INTO messages (sender_id, recipient_id, content, createtime) VALUES (%s, %s, %s, %s)"""
-        app.logger.info("About to execute database query")
+        flask_app.logger.info("About to execute database query")
         cur.execute(query, (sender_id, recipient_id, content, createtime))
         conn.commit()
-        app.logger.info("Database query executed successfully")
+        flask_app.logger.info("Database query executed successfully")
 
         # Add the timestamp to the data being broadcasted
         data['createtime'] = createtime
 
         # Broadcasting using Ably
-        app.logger.info(f"Broadcasting message: {data}")
+        flask_app.logger.info(f"Broadcasting message: {data}")
         channel.publish('receive_message', data)
-        app.logger.info("Message broadcasted successfully")
+        flask_app.logger.info("Message broadcasted successfully")
 
         return jsonify(success=True)
 
     except Exception as e:
-        app.logger.error(f"Error occurred: {e}")
+        flask_app.logger.error(f"Error occurred: {e}")
         return jsonify(success=False, message="An error occurred while processing the request"), 500
 
     finally:
         cur.close()
-        app.logger.info("End of handle_message function")
+        flask_app.logger.info("End of handle_message function")
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    flask_app.run(debug=True)
 
