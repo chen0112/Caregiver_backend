@@ -14,8 +14,6 @@ import datetime
 import bcrypt
 import json
 from datetime import datetime
-
-
 from ably import AblyRealtime
 
 
