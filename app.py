@@ -15,6 +15,8 @@ import bcrypt
 import json
 from datetime import datetime
 from ably import AblyRealtime
+from asgiref.wsgi import WsgiToAsgi
+
 
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG,
@@ -23,6 +25,10 @@ logger = logging.getLogger(__name__)
 
 
 app = Flask(__name__)
+
+# Convert the Flask app to ASGI
+app = WsgiToAsgi(app)
+
 
 ably = AblyRealtime(
     'iP9ymA.8JTs-Q:XJkf6tU_20Q-62UkTi1gbXXD21SHtpygPTPnA7GX0aY')
