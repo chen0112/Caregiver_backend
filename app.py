@@ -18,6 +18,8 @@ from datetime import datetime
 
 # from flask_socketio import SocketIO
 from ably import AblyRealtime
+from flask_socketio import SocketIO
+
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
@@ -1980,5 +1982,5 @@ def handle_message():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
-    # socketio.run(app, debug=True)
+    # app.run(debug=True)
+    socketio.run(app, debug=True)
