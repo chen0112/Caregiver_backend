@@ -16,8 +16,8 @@ import bcrypt
 import json
 from datetime import datetime
 
-from flask_socketio import SocketIO
-
+# from flask_socketio import SocketIO
+from ably import AblyRest
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
@@ -26,11 +26,13 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
+ably = AblyRest('iP9ymA.8JTs-Q:XJkf6tU_20Q-62UkTi1gbXXD21SHtpygPTPnA7GX0aY')
+channel = ably.channels.get('your-channel-name')
 
 # Setting up CORS for Flask app
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-socketio = SocketIO(app, engineio_logger=True)
+# socketio = SocketIO(app, engineio_logger=True)
 
 app.logger.setLevel(logging.DEBUG)
 
@@ -1922,9 +1924,11 @@ def get_myanimalcareneederform(phone):
 
 # Chatwindow endpoint for messages
 
-@socketio.on('send_message')
-def handle_message(data):
+@app.route('/send_message', methods=['POST'])
+def handle_message():
     app.logger.info("Received a request to handle_message")
+
+    data = request.json
 
     # Logging input data
     app.logger.info(f"Input Data: {data}")
@@ -1949,9 +1953,9 @@ def handle_message(data):
         # Add the timestamp to the data being broadcasted
         data['createtime'] = createtime
 
-        # Logging before broadcasting
+        # Broadcasting using Ably
         app.logger.info(f"Broadcasting message: {data}")
-        socketio.emit('receive_message', data)
+        channel.publish('receive_message', data)
         app.logger.info("Message broadcasted successfully")
 
     except Exception as e:
@@ -1960,8 +1964,10 @@ def handle_message(data):
     finally:
         cur.close()
         app.logger.info("End of handle_message function")
+    
+    return jsonify(success=True)
 
 if __name__ == "__main__":
-    # app.run(debug=True)
-    socketio.run(app, debug=True)
+    app.run(debug=True)
+    # socketio.run(app, debug=True)
 
