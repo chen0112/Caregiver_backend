@@ -10,15 +10,13 @@ from psycopg2.extras import DictCursor
 import logging
 from flask import make_response
 import psycopg2.extras
-from werkzeug.security import check_password_hash, generate_password_hash
 import datetime
 import bcrypt
 import json
 from datetime import datetime
 
-# from flask_socketio import SocketIO
+
 from ably import AblyRealtime
-from flask_socketio import SocketIO
 
 
 logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG,
@@ -34,8 +32,6 @@ channel = ably.channels.get('your-channel-name')
 
 # Setting up CORS for Flask app
 CORS(app, resources={r"/*": {"origins": "*"}})
-
-# socketio = SocketIO(app, engineio_logger=True)
 
 app.logger.setLevel(logging.DEBUG)
 
@@ -1982,5 +1978,5 @@ def handle_message():
 
 
 if __name__ == "__main__":
-    # app.run(debug=True)
-    socketio.run(app, debug=True)
+    app.run(debug=True)
+
