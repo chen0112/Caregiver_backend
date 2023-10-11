@@ -1934,7 +1934,7 @@ def get_myanimalcareneederform(phone):
 # Chatwindow endpoint for messages
 
 @flask_app.route('/handle_message', methods=['POST'])
-def handle_message():
+async def handle_message():
     print("Endpoint /handle_message accessed")
     try:
         # Logging request
@@ -1972,7 +1972,7 @@ def handle_message():
 
         # Broadcasting using Ably
         flask_app.logger.info(f"Broadcasting message: {data}")
-        channel.publish('receive_message', data)
+        await channel.publish('receive_message', data)
         flask_app.logger.info("Message broadcasted successfully")
 
         return jsonify(success=True)
