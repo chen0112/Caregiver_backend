@@ -21,7 +21,7 @@ import traceback
 
 
 
-logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.DEBUG,
+logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -1935,6 +1935,7 @@ def get_myanimalcareneederform(phone):
 
 @flask_app.route('/handle_message', methods=['POST'])
 def handle_message():
+    print("Endpoint /handle_message accessed")
     try:
         # Logging request
         flask_app.logger.info("Received a request to handle_message")
