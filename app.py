@@ -1,6 +1,6 @@
 from psycopg2.extras import DictCursor  # Assuming you are using psycopg2
 from flask import Flask, g, request, jsonify
-# from flask_cors import CORS
+from flask_cors import CORS
 import psycopg2
 from psycopg2 import pool
 import boto3
@@ -16,7 +16,6 @@ import json
 from datetime import datetime
 from ably import AblyRealtime
 from asgiref.wsgi import WsgiToAsgi
-from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 import traceback
 
@@ -31,11 +30,9 @@ flask_app = Flask(__name__)
 
 # Convert the Flask flask_app to ASGI
 
-middleware = [
-    Middleware(CORSMiddleware, allow_origins=["*"])
-]
+CORS(flask_app, resources={r"/*": {"origins": "*"}})
 
-asgi_app = WsgiToAsgi(flask_app, middleware=middleware)
+asgi_app = WsgiToAsgi(flask_app)
 
 ably = AblyRealtime(
     'iP9ymA.8JTs-Q:XJkf6tU_20Q-62UkTi1gbXXD21SHtpygPTPnA7GX0aY')
