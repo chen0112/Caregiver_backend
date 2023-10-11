@@ -14,10 +14,10 @@ import datetime
 import bcrypt
 import json
 from datetime import datetime
-# from ably import AblyRealtime
-# from asgiref.wsgi import WsgiToAsgi
-# from starlette.middleware.cors import CORSMiddleware
-# import traceback
+from ably import AblyRealtime
+from asgiref.wsgi import WsgiToAsgi
+from starlette.middleware.cors import CORSMiddleware
+import traceback
 
 
 
@@ -32,11 +32,11 @@ flask_app = Flask(__name__)
 
 CORS(flask_app, resources={r"/*": {"origins": "*"}})
 
-# asgi_app = WsgiToAsgi(flask_app)
+asgi_app = WsgiToAsgi(flask_app)
 
-# ably = AblyRealtime(
-#     'iP9ymA.8JTs-Q:XJkf6tU_20Q-62UkTi1gbXXD21SHtpygPTPnA7GX0aY')
-# channel = ably.channels.get('your-channel-name')
+ably = AblyRealtime(
+    'iP9ymA.8JTs-Q:XJkf6tU_20Q-62UkTi1gbXXD21SHtpygPTPnA7GX0aY')
+channel = ably.channels.get('your-channel-name')
 
 # Setting up CORS for Flask app
 # CORS(app, resources={r"/*": {"origins": "*"}})
@@ -1933,59 +1933,59 @@ def get_myanimalcareneederform(phone):
 
 # Chatwindow endpoint for messages
 
-# @flask_app.route('/handle_message', methods=['POST'])
-# async def handle_message():
-#     print("Endpoint /handle_message accessed")
-#     try:
-#         # Logging request
-#         flask_app.logger.info("Received a request to handle_message")
+@flask_app.route('/handle_message', methods=['POST'])
+async def handle_message():
+    print("Endpoint /handle_message accessed")
+    try:
+        # Logging request
+        flask_app.logger.info("Received a request to handle_message")
 
-#         # Validate input data
-#         if not request.is_json:
-#             return jsonify(success=False, message="Invalid data format"), 400
+        # Validate input data
+        if not request.is_json:
+            return jsonify(success=False, message="Invalid data format"), 400
 
-#         data = request.json
-#         flask_app.logger.info(f"Input Data: {data}")
+        data = request.json
+        flask_app.logger.info(f"Input Data: {data}")
 
-#         sender_id = data.get('sender_id')
-#         recipient_id = data.get('recipient_id')
-#         content = data.get('content')
+        sender_id = data.get('sender_id')
+        recipient_id = data.get('recipient_id')
+        content = data.get('content')
 
-#         # Check if necessary data is provided
-#         if not all([sender_id, recipient_id, content]):
-#             return jsonify(success=False, message="Missing required data"), 400
+        # Check if necessary data is provided
+        if not all([sender_id, recipient_id, content]):
+            return jsonify(success=False, message="Missing required data"), 400
 
-#         # Get current timestamp
-#         createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # Get current timestamp
+        createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-#         conn = get_db()
-#         cur = conn.cursor()
+        conn = get_db()
+        cur = conn.cursor()
 
-#         query = """INSERT INTO messages (sender_id, recipient_id, content, createtime) VALUES (%s, %s, %s, %s)"""
-#         flask_app.logger.info("About to execute database query")
-#         cur.execute(query, (sender_id, recipient_id, content, createtime))
-#         conn.commit()
-#         flask_app.logger.info("Database query executed successfully")
+        query = """INSERT INTO messages (sender_id, recipient_id, content, createtime) VALUES (%s, %s, %s, %s)"""
+        flask_app.logger.info("About to execute database query")
+        cur.execute(query, (sender_id, recipient_id, content, createtime))
+        conn.commit()
+        flask_app.logger.info("Database query executed successfully")
 
-#         # Add the timestamp to the data being broadcasted
-#         data['createtime'] = createtime
+        # Add the timestamp to the data being broadcasted
+        data['createtime'] = createtime
 
-#         # Broadcasting using Ably
-#         flask_app.logger.info(f"Broadcasting message: {data}")
-#         await channel.publish('receive_message', data)
-#         flask_app.logger.info("Message broadcasted successfully")
+        # Broadcasting using Ably
+        flask_app.logger.info(f"Broadcasting message: {data}")
+        await channel.publish('receive_message', data)
+        flask_app.logger.info("Message broadcasted successfully")
 
-#         return jsonify(success=True)
+        return jsonify(success=True)
 
-#     except Exception as e:
-#         traceback_str = traceback.format_exc()
-#         flask_app.logger.error(f"Error occurred: {e}\nTraceback:\n{traceback_str}")
+    except Exception as e:
+        traceback_str = traceback.format_exc()
+        flask_app.logger.error(f"Error occurred: {e}\nTraceback:\n{traceback_str}")
         
-#         return jsonify(success=False, message="An error occurred while processing the request"), 500
+        return jsonify(success=False, message="An error occurred while processing the request"), 500
 
-#     finally:
-#         cur.close()
-#         flask_app.logger.info("End of handle_message function")
+    finally:
+        cur.close()
+        flask_app.logger.info("End of handle_message function")
 
 
 if __name__ == "__main__":
