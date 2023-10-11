@@ -18,6 +18,7 @@ from ably import AblyRealtime
 from asgiref.wsgi import WsgiToAsgi
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
+import traceback
 
 
 
@@ -1979,7 +1980,9 @@ def handle_message():
         return jsonify(success=True)
 
     except Exception as e:
-        flask_app.logger.error(f"Error occurred: {e}")
+        traceback_str = traceback.format_exc()
+        flask_app.logger.error(f"Error occurred: {e}\nTraceback:\n{traceback_str}")
+        
         return jsonify(success=False, message="An error occurred while processing the request"), 500
 
     finally:
