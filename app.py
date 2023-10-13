@@ -16,7 +16,6 @@ import json
 from datetime import datetime
 from ably import AblyRealtime
 from asgiref.wsgi import WsgiToAsgi
-from starlette.middleware.cors import CORSMiddleware
 import traceback
 
 
@@ -1933,8 +1932,8 @@ def get_myanimalcareneederform(phone):
 
 # Chatwindow endpoint for messages
 
-@flask_app.route('/handle_message', methods=['POST'])
-async def handle_message():
+@flask_app.route("/api/handle_message", methods=['POST'])
+def handle_message():
     print("Endpoint /handle_message accessed")
     try:
         # Logging request
@@ -1972,7 +1971,6 @@ async def handle_message():
 
         # Broadcasting using Ably
         flask_app.logger.info(f"Broadcasting message: {data}")
-        await channel.publish('receive_message', data)
         flask_app.logger.info("Message broadcasted successfully")
 
         return jsonify(success=True)
