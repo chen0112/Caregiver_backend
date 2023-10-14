@@ -14,7 +14,7 @@ import datetime
 import bcrypt
 import json
 from datetime import datetime
-from ably import AblyRealtime
+from ably import AblyRest
 from asgiref.wsgi import WsgiToAsgi
 import traceback
 
@@ -32,7 +32,7 @@ CORS(flask_app, resources={r"/*": {"origins": "*"}})
 
 asgi_app = WsgiToAsgi(flask_app)
 
-ably = AblyRealtime(
+ably = AblyRest(
     'iP9ymA.8JTs-Q:XJkf6tU_20Q-62UkTi1gbXXD21SHtpygPTPnA7GX0aY')
 channel = ably.channels.get('your-channel-name')
 
