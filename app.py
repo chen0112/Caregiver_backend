@@ -73,7 +73,7 @@ def register():
             return jsonify({"error": "手机号已被注册"}), 400
 
         # Insert the new account into the database
-        createtime = datetime.datetime.now()
+        createtime = datetime.now()
         cursor.execute("INSERT INTO accounts (phone, passcode, createtime) VALUES (%s, %s, %s) RETURNING id",
                        (phone, passcode, createtime))
         new_user_id = cursor.fetchone()[0]
