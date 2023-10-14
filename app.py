@@ -1998,6 +1998,40 @@ def handle_message():
             f"Error occurred: {e}\nTraceback:\n{traceback_str}")
         return jsonify(success=False, message="An error occurred while processing the request"), 500
 
+@flask_app.route("/api/fetch_messages", methods=['GET'])
+def fetch_messages():
+    sender_id = request.args.get('sender_id')
+    recipient_id = request.args.get('recipient_id')
+
+    if not sender_id or not recipient_id:
+        return jsonify(success=False, message="Missing required data"), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    query = """SELECT * FROM messages WHERE (sender_id = %s AND recipient_id = %s) 
+               OR (sender_id = %s AND recipient_id = %s) ORDER BY createtime ASC"""
+
+    cur.execute(query, (sender_id, recipient_id, recipient_id, sender_id))
+
+    messages = cur.fetchall()
+    cur.close()
+
+     # Convert to JSON objects
+    messages_json = []
+    for message in messages:
+        message_obj = {
+            "id": message[0],
+            "sender_id": message[1],
+            "recipient_id": message[2],
+            "content": message[3],
+            "createtime": message[4]
+        }
+        messages_json.append(message_obj)
+
+    return jsonify(messages_json), 200
+
+
 
 if __name__ == "__main__":
     flask_app.run(debug=True)
