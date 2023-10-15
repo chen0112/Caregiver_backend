@@ -1967,15 +1967,15 @@ def handle_message():
         cur = conn.cursor()
 
         # Step 1: Find or Create Conversation
-        query = """SELECT id FROM conversations WHERE (user1_id = %s AND user2_id = %s) 
-                   OR (user1_id = %s AND user2_id = %s)"""
+        query = """SELECT id FROM conversations WHERE (user1_phone = %s AND user2_phone = %s) 
+                   OR (user1_phone = %s AND user2_phone = %s)"""
         cur.execute(query, (values[0], values[1], values[1], values[0]))
         conversation = cur.fetchone()
 
         if conversation is None:
             # Create a new conversation
             cur.execute(
-                "INSERT INTO conversations (user1_id, user2_id) VALUES (%s, %s) RETURNING id", (values[0], values[1]))
+                "INSERT INTO conversations (user1_phone, user2_phone) VALUES (%s, %s) RETURNING id", (values[0], values[1]))
             conversation_id = cur.fetchone()[0]
         else:
             conversation_id = conversation[0]
