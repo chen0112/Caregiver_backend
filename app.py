@@ -1966,9 +1966,24 @@ def handle_message():
         conn = get_db()
         cur = conn.cursor()
 
-        # Construct the INSERT query
-        query = f"""INSERT INTO messages ({', '.join(mandatory_fields)}) VALUES ({', '.join(['%s'] * len(mandatory_fields))}) RETURNING id"""
-        flask_app.logger.info("About to execute database query")
+        # Step 1: Find or Create Conversation
+        query = """SELECT id FROM conversations WHERE (user1_id = %s AND user2_id = %s) 
+                   OR (user1_id = %s AND user2_id = %s)"""
+        cur.execute(query, (values[0], values[1], values[1], values[0]))
+        conversation = cur.fetchone()
+
+        if conversation is None:
+            # Create a new conversation
+            cur.execute(
+                "INSERT INTO conversations (user1_id, user2_id) VALUES (%s, %s) RETURNING id", (values[0], values[1]))
+            conversation_id = cur.fetchone()[0]
+        else:
+            conversation_id = conversation[0]
+
+        # Step 2: Insert the message with conversation_id
+        query = """INSERT INTO messages (sender_id, recipient_id, content, createtime, conversation_id)
+                    VALUES (%s, %s, %s, %s, %s) RETURNING id"""
+        values.append(conversation_id)
 
         # Execute the query
         cur.execute(query, values)
@@ -1983,10 +1998,11 @@ def handle_message():
         # Create the returned object based on the interface
         new_messages = {
             "id": new_message_id,
+            "conversation_id": conversation_id 
         }
 
         # Include columns in the return object if they exist
-        for column in ["sender_id", "recipient_id", "content","createtime"]:
+        for column in ["sender_id", "recipient_id", "content", "createtime"]:
             if column in data:
                 new_messages[column] = data[column]
 
@@ -2032,6 +2048,28 @@ def fetch_messages():
     return jsonify(messages_json), 200
 
 
+# New endpoint for user-specific conversations
+@flask_app.route('/api/fetch_user_conversations', methods=['GET'])
+def get_user_conversations():
+    # For demonstration purposes, assume you can get the phone number of the user from the request.
+    # In a real-world application, you'd likely get this information from a secure authentication token.
+    user_phone = request.args.get('user_phone')
+
+    if not user_phone:
+        return jsonify({'error': 'User phone number is required'}), 400
+
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM conversations WHERE user1_phone = %s OR user2_phone = %s", (user_phone, user_phone))
+
+    conversations = cursor.fetchall()
+    cursor.close()
+
+    # Convert to JSON (or dictionary)
+    conversations_json = [dict(zip([key[0] for key in cursor.description], row)) for row in conversations]
+
+    return jsonify(conversations_json)
 
 if __name__ == "__main__":
     flask_app.run(debug=True)
