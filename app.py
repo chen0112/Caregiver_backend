@@ -2071,5 +2071,34 @@ def get_user_conversations():
 
     return jsonify(conversations_json)
 
+@flask_app.route('/api/list_conversations', methods=['GET'])
+def list_conversations():
+    try:
+        # Assuming user_id is available from a secure session or token
+        user_phone = request.args.get('user_phone')
+
+        # Connect to the database
+        conn = get_db()
+        cur = conn.cursor()
+
+        # SQL Query
+        query = """SELECT * FROM conversations WHERE user1_phone = %s OR user2_phone = %s ORDER BY id DESC"""
+        cur.execute(query, (user_phone, user_phone))
+
+        # Fetch results
+        conversations = cur.fetchall()
+        cur.close()
+
+        # Serialize and return
+        conversations_list = [{"conversation_id": row[0], "user1_phone": row[1], "user2_phone": row[2]} for row in conversations]
+        return jsonify({"conversations": conversations_list})
+
+    except Exception as e:
+        traceback_str = traceback.format_exc()
+        flask_app.logger.error(
+            f"Error occurred: {e}\nTraceback:\n{traceback_str}")
+        return jsonify(success=False, message="An error occurred while processing the request"), 500
+
+
 if __name__ == "__main__":
     flask_app.run(debug=True)
