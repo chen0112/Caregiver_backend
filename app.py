@@ -2081,6 +2081,7 @@ def list_conversations():
 
 # New endpoint for fetching messages based on conversation_id
 
+
 @flask_app.route('/api/fetch_messages_chat_conversation', methods=['GET'])
 def fetch_messages_chat_conversation():
     conversation_id = request.args.get('conversation_id')
@@ -2088,32 +2089,46 @@ def fetch_messages_chat_conversation():
     if not conversation_id:
         return jsonify({'error': 'conversation_id is required'}), 400
 
-    db = get_db()
-    cursor = db.cursor(cursor_factory=DictCursor)
+        # Convert to integer to prevent SQL injection
+    try:
+        conversation_id = int(conversation_id)
+    except ValueError:
+        return jsonify({'error': 'Invalid conversation_id'}), 400
 
-    cursor.execute(
-        "SELECT * FROM messages WHERE conversation_id = %s", (conversation_id,))
+    try:
+        db = get_db()
+        cursor = db.cursor(cursor_factory=DictCursor)
 
-    messages = cursor.fetchall()
-    cursor.close()
+        cursor.execute(
+            "SELECT * FROM messages WHERE conversation_id = %s", (conversation_id,))
 
-    if not messages:
-        return jsonify({'error': 'No messages found for this conversation_id'}), 404
+        messages = cursor.fetchall()
 
-     # Convert to JSON objects
-    messages_json = []
-    for message in messages:
-        message_obj = {
-            "id": message[0],
-            "sender_id": message[1],
-            "recipient_id": message[2],
-            "content": message[3],
-            "createtime": message[4],
-            "conversation_id": message[5]
-        }
-        messages_json.append(message_obj)
+        if not messages:
+            return jsonify([]), 200  # Empty list but still a valid request
 
-    return jsonify(messages_json), 200
+        # Convert to JSON objects
+        messages_json = []
+        for message in messages:
+            message_obj = {
+                "id": message[0],
+                "sender_id": message[1],
+                "recipient_id": message[2],
+                "content": message[3],
+                "createtime": message[4],
+                "conversation_id": message[5]
+            }
+            messages_json.append(message_obj)
+
+        return jsonify(messages_json), 200
+
+    except Exception as e:
+        flask_app.logger.error(f"Error occurred: {e}")
+        return jsonify({'error': 'An error occurred while processing the request'}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
 
 
 if __name__ == "__main__":
