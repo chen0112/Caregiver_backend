@@ -2021,37 +2021,48 @@ def fetch_messages_chatwindow():
     recipient_id = request.args.get('recipient_id')
 
     if not sender_id or not recipient_id:
-        return jsonify(success=False, message="Missing required data"), 400
+        return jsonify({'error': 'sender_id and recipient_id are required'}), 400
 
-    conn = get_db()
-    cur = conn.cursor()
+    try:
+        db = get_db()
+        cursor = db.cursor(cursor_factory=DictCursor)
 
-    query = """SELECT * FROM messages WHERE (sender_id = %s AND recipient_id = %s) 
-               OR (sender_id = %s AND recipient_id = %s) ORDER BY createtime ASC"""
+        query = """SELECT * FROM messages WHERE (sender_id = %s AND recipient_id = %s) 
+                   OR (sender_id = %s AND recipient_id = %s) ORDER BY createtime ASC"""
 
-    cur.execute(query, (sender_id, recipient_id, recipient_id, sender_id))
+        cursor.execute(query, (sender_id, recipient_id, recipient_id, sender_id))
 
-    messages = cur.fetchall()
-    cur.close()
+        messages = cursor.fetchall()
 
-    # Convert to JSON objects
-    messages_json = []
-    for message in messages:
-        message_obj = {
-            "id": message[0],
-            "sender_id": message[1],
-            "recipient_id": message[2],
-            "content": message[3],
-            "createtime": message[4],
-            "conversation_id": message[5]
-        }
-        messages_json.append(message_obj)
-        response = make_response(jsonify(message_obj))
+        if not messages:
+            return jsonify([]), 200  # Empty list but still a valid request
+
+        # Convert to JSON objects
+        messages_json = []
+        for message in messages:
+            message_obj = {
+                "id": message[0],
+                "sender_id": message[1],
+                "recipient_id": message[2],
+                "content": message[3],
+                "createtime": message[4],
+                "conversation_id": message[5]
+            }
+            messages_json.append(message_obj)
+
+        response = make_response(jsonify(messages_json))
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
         response.headers['Pragma'] = 'no-cache'
         return response
 
-    return jsonify(messages_json), 200
+    except Exception as e:
+        flask_app.logger.error(f"Error occurred: {e}")
+        return jsonify({'error': 'An error occurred while processing the request'}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+
 
 
 @flask_app.route('/api/list_conversations', methods=['GET'])
