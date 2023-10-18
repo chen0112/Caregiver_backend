@@ -2065,7 +2065,7 @@ def list_conversations():
         # Extended SQL Query
         query = """
         SELECT 
-            c.conversation_id, 
+            c.id, 
             CASE 
                 WHEN c.user1_phone = %s THEN c.user2_phone 
                 ELSE c.user1_phone 
@@ -2087,7 +2087,7 @@ def list_conversations():
                 FROM messages 
                 GROUP BY conversation_id
             )
-        ) m ON m.conversation_id = c.conversation_id
+        ) m ON m.conversation_id = c.id
         WHERE c.user1_phone = %s OR c.user2_phone = %s 
         ORDER BY c.id DESC;
         """
