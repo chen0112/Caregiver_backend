@@ -2046,6 +2046,10 @@ def fetch_messages_chatwindow():
             "conversation_id": message[5]
         }
         messages_json.append(message_obj)
+        response = make_response(jsonify(message_obj))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
 
     return jsonify(messages_json), 200
 
@@ -2053,31 +2057,67 @@ def fetch_messages_chatwindow():
 @flask_app.route('/api/list_conversations', methods=['GET'])
 def list_conversations():
     try:
-        # Assuming user_id is available from a secure session or token
         user_phone = request.args.get('user_phone')
 
-        # Connect to the database
         conn = get_db()
         cur = conn.cursor()
 
-        # SQL Query
-        query = """SELECT * FROM conversations WHERE user1_phone = %s OR user2_phone = %s ORDER BY id DESC"""
-        cur.execute(query, (user_phone, user_phone))
+        # Extended SQL Query
+        query = """
+        SELECT 
+            c.conversation_id, 
+            CASE 
+                WHEN c.user1_phone = %s THEN c.user2_phone 
+                ELSE c.user1_phone 
+            END AS other_user_phone,
+            cg.name, 
+            cg.imageurl, 
+            m.content AS lastMessage, 
+            m.createtime AS timestamp 
+        FROM conversations c
+        LEFT JOIN caregivers cg ON cg.phone = CASE 
+                WHEN c.user1_phone = %s THEN c.user2_phone 
+                ELSE c.user1_phone 
+            END
+        LEFT JOIN (
+            SELECT content, createtime, conversation_id 
+            FROM messages 
+            WHERE id IN (
+                SELECT MAX(id) 
+                FROM messages 
+                GROUP BY conversation_id
+            )
+        ) m ON m.conversation_id = c.conversation_id
+        WHERE c.user1_phone = %s OR c.user2_phone = %s 
+        ORDER BY c.id DESC;
+        """
+        cur.execute(query, (user_phone, user_phone, user_phone, user_phone))
 
-        # Fetch results
         conversations = cur.fetchall()
         cur.close()
 
         # Serialize and return
-        conversations_list = [{"conversation_id": row[0], "user1_phone": row[1],
-                               "user2_phone": row[2]} for row in conversations]
-        return jsonify({"conversations": conversations_list})
+        conversations_list = [{
+            "conversation_id": row[0],
+            "other_user_phone": row[1],
+            "name": row[2],
+            "profileImage": row[3],
+            "lastMessage": row[4],
+            "timestamp": str(row[5])  # Convert datetime object to string
+        } for row in conversations]
+
+        response = make_response(
+            jsonify({"conversations": conversations_list}))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
 
     except Exception as e:
         traceback_str = traceback.format_exc()
         flask_app.logger.error(
             f"Error occurred: {e}\nTraceback:\n{traceback_str}")
         return jsonify(success=False, message="An error occurred while processing the request"), 500
+
 
 # New endpoint for fetching messages based on conversation_id
 
@@ -2120,7 +2160,10 @@ def fetch_messages_chat_conversation():
             }
             messages_json.append(message_obj)
 
-        return jsonify(messages_json), 200
+        response = make_response(jsonify(messages_json))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
 
     except Exception as e:
         flask_app.logger.error(f"Error occurred: {e}")
