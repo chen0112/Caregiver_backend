@@ -2113,7 +2113,7 @@ def list_conversations():
         cur = conn.cursor()
 
         # Decide which table to join based on user_type
-        table_name = "careneeder" if user_type == "caregiver" else "caregiver"
+        table_name = "careneeder" if user_type == "caregiver" else "caregivers"
 
         # Adjusted SQL Query
         query = f"""
