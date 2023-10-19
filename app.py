@@ -2116,19 +2116,19 @@ def list_conversations():
         table_name = "careneeder" if user_type == "caregiver" else "caregivers"
 
         # Adjusted SQL Query
-        query = f"""
+        query = """
         SELECT 
             c.id, 
             CASE 
                 WHEN c.user1_phone = %s THEN c.user2_phone 
                 ELSE c.user1_phone 
             END AS other_user_phone,
-            cg.name, 
-            cg.imageurl, 
+            a.name, 
+            a.imageurl, 
             m.content AS lastMessage, 
             m.createtime AS timestamp 
         FROM conversations c
-        LEFT JOIN {table_name} cg ON cg.phone = CASE 
+        LEFT JOIN accounts a ON a.phone = CASE 
                 WHEN c.user1_phone = %s THEN c.user2_phone 
                 ELSE c.user1_phone 
             END
