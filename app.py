@@ -2030,7 +2030,8 @@ def fetch_messages_chatwindow():
         query = """SELECT * FROM messages WHERE (sender_id = %s AND recipient_id = %s) 
                    OR (sender_id = %s AND recipient_id = %s) ORDER BY createtime ASC"""
 
-        cursor.execute(query, (sender_id, recipient_id, recipient_id, sender_id))
+        cursor.execute(
+            query, (sender_id, recipient_id, recipient_id, sender_id))
 
         messages = cursor.fetchall()
 
@@ -2064,17 +2065,56 @@ def fetch_messages_chatwindow():
             cursor.close()
 
 
+def generate_query(role):
+    """
+    Generate the SQL query based on the role (caregiver or careneeder)
+    """
+    user_table = "caregivers" if role == "caregiver" else "careneeders"
+
+    return f"""
+        SELECT 
+            c.id, 
+            CASE 
+                WHEN c.user1_phone = %s THEN c.user2_phone 
+                ELSE c.user1_phone 
+            END AS other_user_phone,
+            {user_table}.name, 
+            {user_table}.imageurl, 
+            m.content AS lastMessage, 
+            m.createtime AS timestamp 
+        FROM conversations c
+        LEFT JOIN {user_table} ON {user_table}.phone = CASE 
+                WHEN c.user1_phone = %s THEN c.user2_phone 
+                ELSE c.user1_phone 
+            END
+        LEFT JOIN (
+            SELECT content, createtime, conversation_id 
+            FROM messages 
+            WHERE id IN (
+                SELECT MAX(id) 
+                FROM messages 
+                GROUP BY conversation_id
+            )
+        ) m ON m.conversation_id = c.id
+        WHERE c.user1_phone = %s OR c.user2_phone = %s 
+        ORDER BY c.id DESC;
+    """
+
 
 @flask_app.route('/api/list_conversations', methods=['GET'])
 def list_conversations():
     try:
         user_phone = request.args.get('user_phone')
+        user_type = request.args.get('user_type')
 
         conn = get_db()
         cur = conn.cursor()
 
-        # Extended SQL Query
-        query = """
+        # Decide which table to join based on user_type
+        table_name = "caregivers" if user_type == "caregiver" else "careneeders"
+
+        # Adjusted SQL Query
+        query = f"""
         SELECT 
             c.id, 
             CASE 
@@ -2086,7 +2126,7 @@ def list_conversations():
             m.content AS lastMessage, 
             m.createtime AS timestamp 
         FROM conversations c
-        LEFT JOIN caregivers cg ON cg.phone = CASE 
+        LEFT JOIN {table_name} cg ON cg.phone = CASE 
                 WHEN c.user1_phone = %s THEN c.user2_phone 
                 ELSE c.user1_phone 
             END
