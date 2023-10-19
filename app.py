@@ -58,9 +58,11 @@ def register():
         # Get the JSON data from the request
         data = request.get_json()
 
-        # Extract phone and passcode
+        # Extract phone, passcode, name, and imageurl
         phone = data["phone"]
         passcode = data["passcode"]  # this is already hashed from the frontend
+        name = data["name"]
+        imageurl = data["imageurl"]
 
         # Connect to the PostgreSQL database
         conn = get_db()
@@ -74,8 +76,8 @@ def register():
 
         # Insert the new account into the database
         createtime = datetime.now()
-        cursor.execute("INSERT INTO accounts (phone, passcode, createtime) VALUES (%s, %s, %s) RETURNING id",
-                       (phone, passcode, createtime))
+        cursor.execute("INSERT INTO accounts (phone, passcode, name, imageurl, createtime) VALUES (%s, %s, %s, %s, %s) RETURNING id",
+                       (phone, passcode, name, imageurl, createtime))
         new_user_id = cursor.fetchone()[0]
 
         # Commit the changes and close the connection
