@@ -1952,7 +1952,7 @@ def handle_message():
         flask_app.logger.info(f"Input Data: {data}")
 
         # Define the mandatory fields required
-        mandatory_fields = ["sender_id", "recipient_id", "content"]
+        mandatory_fields = ["sender_id", "recipient_id", "content", "ad_id", "ad_type"]
         values = [data[field] for field in mandatory_fields]
 
         # Check if necessary data is provided
@@ -1983,8 +1983,9 @@ def handle_message():
             conversation_id = conversation[0]
 
         # Step 2: Insert the message with conversation_id
-        query = """INSERT INTO messages (sender_id, recipient_id, content, createtime, conversation_id)
-                    VALUES (%s, %s, %s, %s, %s) RETURNING id"""
+        query = """INSERT INTO messages (sender_id, recipient_id, content, conversation_id, ad_id, ad_type, createtime)
+            VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"""
+
         values.append(conversation_id)
 
         # Execute the query
@@ -2004,9 +2005,9 @@ def handle_message():
         }
 
         # Include columns in the return object if they exist
-        for column in ["sender_id", "recipient_id", "content", "createtime"]:
+        for column in ["sender_id", "recipient_id", "content", "createtime", "ad_id", "ad_type"]:
             if column in data:
-                new_messages[column] = data[column]
+             new_messages[column] = data[column]
 
         return jsonify(new_messages), 201
 
@@ -2066,41 +2067,6 @@ def fetch_messages_chatwindow():
         if cursor:
             cursor.close()
 
-
-def generate_query(role):
-    """
-    Generate the SQL query based on the role (caregiver or careneeder)
-    """
-    user_table = "caregivers" if role == "caregiver" else "careneeders"
-
-    return f"""
-        SELECT 
-            c.id, 
-            CASE 
-                WHEN c.user1_phone = %s THEN c.user2_phone 
-                ELSE c.user1_phone 
-            END AS other_user_phone,
-            {user_table}.name, 
-            {user_table}.imageurl, 
-            m.content AS lastMessage, 
-            m.createtime AS timestamp 
-        FROM conversations c
-        LEFT JOIN {user_table} ON {user_table}.phone = CASE 
-                WHEN c.user1_phone = %s THEN c.user2_phone 
-                ELSE c.user1_phone 
-            END
-        LEFT JOIN (
-            SELECT content, createtime, conversation_id 
-            FROM messages 
-            WHERE id IN (
-                SELECT MAX(id) 
-                FROM messages 
-                GROUP BY conversation_id
-            )
-        ) m ON m.conversation_id = c.id
-        WHERE c.user1_phone = %s OR c.user2_phone = %s 
-        ORDER BY c.id DESC;
-    """
 
 
 @flask_app.route('/api/list_conversations', methods=['GET'])
