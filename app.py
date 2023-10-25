@@ -1971,6 +1971,7 @@ def handle_message():
         # Step 1: Find or Create Conversation
         query = """SELECT id FROM conversations WHERE (user1_phone = %s AND user2_phone = %s) 
                    OR (user1_phone = %s AND user2_phone = %s)"""
+        flask_app.logger.info(f"Executing query: {query} with values: {values}")
         cur.execute(query, (values[0], values[1], values[1], values[0]))
         conversation = cur.fetchone()
 
