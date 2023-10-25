@@ -1971,7 +1971,7 @@ def handle_message():
         # Step 1: Find or Create Conversation
         query = """SELECT id FROM conversations WHERE (user1_phone = %s AND user2_phone = %s) 
                    OR (user1_phone = %s AND user2_phone = %s)"""
-        flask_app.logger.info(f"Executing query: {query} with values: {values}")
+    
         cur.execute(query, (values[0], values[1], values[1], values[0]))
         conversation = cur.fetchone()
 
@@ -1984,8 +1984,9 @@ def handle_message():
             conversation_id = conversation[0]
 
         # Step 2: Insert the message with conversation_id
-        query = """INSERT INTO messages (sender_id, recipient_id, content, conversation_id, ad_id, ad_type, createtime)
+        query = """INSERT INTO messages (sender_id, recipient_id, content, ad_id, ad_type, createtime, conversation_id)
             VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"""
+
 
         values.append(conversation_id)
 
