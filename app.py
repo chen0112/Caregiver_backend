@@ -2094,7 +2094,7 @@ def list_conversations():
             a.name, 
             a.imageurl, 
             m.content AS lastMessage, 
-            m.createtime AS timestamp
+            m.createtime AS timestamp,
             m.ad_id,
             m.ad_type 
         FROM conversations c
