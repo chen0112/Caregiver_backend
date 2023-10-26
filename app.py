@@ -2127,8 +2127,8 @@ def list_conversations():
             "profileImage": row[3],
             "lastMessage": row[4],
             "timestamp": str(row[5]),  # Convert datetime object to string
-            "adId": row[6],
-            "adType": row[7]
+            "ad_id": row[6],
+            "ad_type": row[7]
         } for row in conversations]
 
         response = make_response(
