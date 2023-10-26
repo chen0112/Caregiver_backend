@@ -1952,17 +1952,14 @@ def handle_message():
         flask_app.logger.info(f"Input Data: {data}")
 
         # Define the mandatory fields required
-        mandatory_fields = ["sender_id", "recipient_id", "content", "ad_id", "ad_type"]
-        values = [data[field] for field in mandatory_fields]
+        mandatory_fields = ["sender_id", "recipient_id", "content"]
 
         # Check if necessary data is provided
-        if not all(values):
+        if not all(data.get(field) for field in mandatory_fields):
             return jsonify(success=False, message="Missing required data"), 400
 
         # Get current timestamp
         createtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        mandatory_fields.append("createtime")
-        values.append(createtime)
 
         # Connect to the database
         conn = get_db()
@@ -1971,24 +1968,32 @@ def handle_message():
         # Step 1: Find or Create Conversation
         query = """SELECT id FROM conversations WHERE (user1_phone = %s AND user2_phone = %s) 
                    OR (user1_phone = %s AND user2_phone = %s)"""
-    
-        cur.execute(query, (values[0], values[1], values[1], values[0]))
+        cur.execute(query, (data["sender_id"], data["recipient_id"], data["recipient_id"], data["sender_id"]))
         conversation = cur.fetchone()
 
         if conversation is None:
             # Create a new conversation
             cur.execute(
-                "INSERT INTO conversations (user1_phone, user2_phone) VALUES (%s, %s) RETURNING id", (values[0], values[1]))
+                "INSERT INTO conversations (user1_phone, user2_phone) VALUES (%s, %s) RETURNING id",
+                (data["sender_id"], data["recipient_id"])
+            )
             conversation_id = cur.fetchone()[0]
         else:
             conversation_id = conversation[0]
 
         # Step 2: Insert the message with conversation_id
         query = """INSERT INTO messages (sender_id, recipient_id, content, ad_id, ad_type, createtime, conversation_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"""
+                   VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"""
 
-
-        values.append(conversation_id)
+        values = [
+            data["sender_id"],
+            data["recipient_id"],
+            data["content"],
+            data.get("ad_id", None),  # Optional field
+            data.get("ad_type", None),  # Optional field
+            createtime,
+            conversation_id
+        ]
 
         # Execute the query
         cur.execute(query, values)
@@ -1998,8 +2003,6 @@ def handle_message():
 
         flask_app.logger.info("Database query executed successfully")
 
-        # Add the new message ID and timestamp to the data
-
         # Create the returned object based on the interface
         new_messages = {
             "id": new_message_id,
@@ -2007,16 +2010,15 @@ def handle_message():
         }
 
         # Include columns in the return object if they exist
-        for column in ["sender_id", "recipient_id", "content", "createtime", "ad_id", "ad_type"]:
+        for column in mandatory_fields + ["ad_id", "ad_type", "createtime"]:
             if column in data:
-             new_messages[column] = data[column]
+                new_messages[column] = data[column]
 
         return jsonify(new_messages), 201
 
     except Exception as e:
         traceback_str = traceback.format_exc()
-        flask_app.logger.error(
-            f"Error occurred: {e}\nTraceback:\n{traceback_str}")
+        flask_app.logger.error(f"Error occurred: {e}\nTraceback:\n{traceback_str}")
         return jsonify(success=False, message="An error occurred while processing the request"), 500
 
 
