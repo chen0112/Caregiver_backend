@@ -2094,14 +2094,16 @@ def list_conversations():
             a.name, 
             a.imageurl, 
             m.content AS lastMessage, 
-            m.createtime AS timestamp 
+            m.createtime AS timestamp
+            m.ad_id,
+            m.ad_type 
         FROM conversations c
         LEFT JOIN accounts a ON a.phone = CASE 
                 WHEN c.user1_phone = %s THEN c.user2_phone 
                 ELSE c.user1_phone 
             END
         LEFT JOIN (
-            SELECT content, createtime, conversation_id 
+            SELECT content, createtime, conversation_id, ad_id, ad_type
             FROM messages 
             WHERE id IN (
                 SELECT MAX(id) 
@@ -2124,7 +2126,9 @@ def list_conversations():
             "name": row[2],
             "profileImage": row[3],
             "lastMessage": row[4],
-            "timestamp": str(row[5])  # Convert datetime object to string
+            "timestamp": str(row[5]),  # Convert datetime object to string
+            "adId": row[6],
+            "adType": row[7]
         } for row in conversations]
 
         response = make_response(
