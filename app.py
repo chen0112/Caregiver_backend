@@ -2041,10 +2041,8 @@ def fetch_messages_chatwindow():
         query = """SELECT * FROM messages WHERE ((sender_id = %s AND recipient_id = %s) OR (sender_id = %s AND recipient_id = %s)) 
            AND ad_id = %s AND ad_type = %s ORDER BY createtime ASC"""
 
-
         cursor.execute(
             query, (sender_id, recipient_id, recipient_id, sender_id, ad_id, ad_type))
-
 
         messages = cursor.fetchall()
 
@@ -2060,7 +2058,9 @@ def fetch_messages_chatwindow():
                 "recipient_id": message[2],
                 "content": message[3],
                 "createtime": message[4],
-                "conversation_id": message[5]
+                "conversation_id": message[5],
+                "ad_id": ad_id,
+                "ad_type": ad_type
             }
             messages_json.append(message_obj)
 
@@ -2149,7 +2149,6 @@ def list_conversations():
         flask_app.logger.error(
             f"Error occurred: {e}\nTraceback:\n{traceback_str}")
         return jsonify(success=False, message="An error occurred while processing the request"), 500
-
 
 
 # New endpoint for fetching messages based on conversation_id
