@@ -1968,7 +1968,8 @@ def handle_message():
         # Step 1: Find or Create Conversation
         query = """SELECT id FROM conversations WHERE (user1_phone = %s AND user2_phone = %s) 
                    OR (user1_phone = %s AND user2_phone = %s)"""
-        cur.execute(query, (data["sender_id"], data["recipient_id"], data["recipient_id"], data["sender_id"]))
+        cur.execute(query, (data["sender_id"], data["recipient_id"],
+                    data["recipient_id"], data["sender_id"]))
         conversation = cur.fetchone()
 
         if conversation is None:
@@ -2018,7 +2019,8 @@ def handle_message():
 
     except Exception as e:
         traceback_str = traceback.format_exc()
-        flask_app.logger.error(f"Error occurred: {e}\nTraceback:\n{traceback_str}")
+        flask_app.logger.error(
+            f"Error occurred: {e}\nTraceback:\n{traceback_str}")
         return jsonify(success=False, message="An error occurred while processing the request"), 500
 
 
@@ -2070,7 +2072,6 @@ def fetch_messages_chatwindow():
     finally:
         if cursor:
             cursor.close()
-
 
 
 @flask_app.route('/api/list_conversations', methods=['GET'])
@@ -2146,9 +2147,8 @@ def list_conversations():
         return jsonify(success=False, message="An error occurred while processing the request"), 500
 
 
+
 # New endpoint for fetching messages based on conversation_id
-
-
 @flask_app.route('/api/fetch_messages_chat_conversation', methods=['GET'])
 def fetch_messages_chat_conversation():
     conversation_id = request.args.get('conversation_id')
@@ -2199,6 +2199,41 @@ def fetch_messages_chat_conversation():
     finally:
         if cursor:
             cursor.close()
+
+
+# fetch the accounts data to the frontend
+@flask_app.route("/api/account/<phone>", methods=["GET"])
+def get_account(phone):
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch the account related to the phone number
+        cursor.execute(
+            "SELECT * FROM accounts WHERE phone = %s LIMIT 1", (phone,))
+        row = cursor.fetchone()
+
+        # Close the connection
+        cursor.close()
+
+        if not row:
+            return jsonify({"error": "Account not found"}), 404
+
+        account = {
+            "id": row["id"],
+            "phone": row["phone"],
+            "passcode": row["passcode"],
+            "createtime": row["createtime"],
+            "name": row["name"],
+            "imageurl": row["imageurl"]
+        }
+
+        return jsonify(account)
+    except Exception as e:
+        flask_app.logger.error(
+            f"Error fetching account for phone {phone}", exc_info=True)
+        return jsonify({"error": "Failed to fetch account"}), 500
 
 
 if __name__ == "__main__":
