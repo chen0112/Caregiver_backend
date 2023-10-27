@@ -2028,19 +2028,23 @@ def handle_message():
 def fetch_messages_chatwindow():
     sender_id = request.args.get('sender_id')
     recipient_id = request.args.get('recipient_id')
+    ad_id = request.args.get('ad_id')
+    ad_type = request.args.get('ad_type')
 
-    if not sender_id or not recipient_id:
-        return jsonify({'error': 'sender_id and recipient_id are required'}), 400
+    if not sender_id or not recipient_id or not ad_id or not ad_type:
+        return jsonify({'error': 'sender_id, recipient_id, ad_id, and ad_type are required'}), 400
 
     try:
         db = get_db()
         cursor = db.cursor(cursor_factory=DictCursor)
 
-        query = """SELECT * FROM messages WHERE (sender_id = %s AND recipient_id = %s) 
-                   OR (sender_id = %s AND recipient_id = %s) ORDER BY createtime ASC"""
+        query = """SELECT * FROM messages WHERE ((sender_id = %s AND recipient_id = %s) OR (sender_id = %s AND recipient_id = %s)) 
+           AND ad_id = %s AND ad_type = %s ORDER BY createtime ASC"""
+
 
         cursor.execute(
-            query, (sender_id, recipient_id, recipient_id, sender_id))
+            query, (sender_id, recipient_id, recipient_id, sender_id, ad_id, ad_type))
+
 
         messages = cursor.fetchall()
 
