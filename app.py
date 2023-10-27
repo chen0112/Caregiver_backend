@@ -2228,6 +2228,7 @@ def get_account(phone):
             "name": row["name"],
             "imageurl": row["imageurl"]
         }
+        print(account)
 
         return jsonify(account)
     except Exception as e:
