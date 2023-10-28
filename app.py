@@ -2087,9 +2087,6 @@ def list_conversations():
         conn = get_db()
         cur = conn.cursor()
 
-        # Decide which table to join based on user_type
-        table_name = "careneeder" if user_type == "caregiver" else "caregivers"
-
         # Adjusted SQL Query
         query = """
         SELECT 
@@ -2112,12 +2109,12 @@ def list_conversations():
         LEFT JOIN (
             SELECT content, createtime, conversation_id, ad_id, ad_type
             FROM messages 
-            WHERE id IN (
-                SELECT MAX(id) 
+            WHERE (conversation_id, id) IN (
+                SELECT conversation_id, MAX(id) 
                 FROM messages 
-                GROUP BY conversation_id
+                GROUP BY conversation_id, ad_id
             )
-        ) m ON m.conversation_id = c.id
+        ) m ON m.conversation_id = c.id and m.ad_id = c.ad_id
         WHERE c.user1_phone = %s OR c.user2_phone = %s 
         ORDER BY c.id DESC;
         """
