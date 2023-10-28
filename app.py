@@ -1952,7 +1952,7 @@ def handle_message():
         flask_app.logger.info(f"Input Data: {data}")
 
         # Define the mandatory fields required
-        mandatory_fields = ["sender_id", "recipient_id", "content"]
+        mandatory_fields = ["sender_id", "recipient_id", "content", "ad_id"]
 
         # Check if necessary data is provided
         if not all(data.get(field) for field in mandatory_fields):
@@ -1975,8 +1975,8 @@ def handle_message():
         if conversation is None:
             # Create a new conversation
             cur.execute(
-                "INSERT INTO conversations (user1_phone, user2_phone, ad_id) VALUES (%s, %s, %s) RETURNING id",
-                (data["sender_id"], data["recipient_id"], data.get("ad_id", None))
+                "INSERT INTO conversations (user1_phone, user2_phone) VALUES (%s, %s) RETURNING id",
+                (data["sender_id"], data["recipient_id"])
             )
             conversation_id = cur.fetchone()[0]
         else:
@@ -1990,7 +1990,7 @@ def handle_message():
             data["sender_id"],
             data["recipient_id"],
             data["content"],
-            data.get("ad_id", None),  # Optional field
+            data["ad_id"],  # This field is now mandatory
             data.get("ad_type", None),  # Optional field
             createtime,
             conversation_id
@@ -2011,7 +2011,7 @@ def handle_message():
         }
 
         # Include columns in the return object if they exist
-        for column in mandatory_fields + ["ad_id", "ad_type", "createtime"]:
+        for column in mandatory_fields + ["ad_type", "createtime"]:
             if column in data:
                 new_messages[column] = data[column]
 
@@ -2082,7 +2082,6 @@ def fetch_messages_chatwindow():
 def list_conversations():
     try:
         user_phone = request.args.get('user_phone')
-        user_type = request.args.get('user_type')
 
         conn = get_db()
         cur = conn.cursor()
@@ -2109,16 +2108,18 @@ def list_conversations():
         LEFT JOIN (
             SELECT content, createtime, conversation_id, ad_id, ad_type
             FROM messages 
-            WHERE (conversation_id, id) IN (
-                SELECT conversation_id, MAX(id) 
+            WHERE (conversation_id, createtime) IN (
+                SELECT conversation_id, MAX(createtime) 
                 FROM messages 
+                WHERE sender_id = %s OR recipient_id = %s
                 GROUP BY conversation_id, ad_id
             )
-        ) m ON m.conversation_id = c.id and m.ad_id = c.ad_id
+        ) m ON m.conversation_id = c.id
         WHERE c.user1_phone = %s OR c.user2_phone = %s 
-        ORDER BY c.id DESC;
+        ORDER BY m.createtime DESC;
         """
-        cur.execute(query, (user_phone, user_phone, user_phone, user_phone))
+        cur.execute(query, (user_phone, user_phone, user_phone,
+                    user_phone, user_phone, user_phone))
 
         conversations = cur.fetchall()
         cur.close()
