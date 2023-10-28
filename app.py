@@ -1975,8 +1975,8 @@ def handle_message():
         if conversation is None:
             # Create a new conversation
             cur.execute(
-                "INSERT INTO conversations (user1_phone, user2_phone) VALUES (%s, %s) RETURNING id",
-                (data["sender_id"], data["recipient_id"])
+                "INSERT INTO conversations (user1_phone, user2_phone, ad_id) VALUES (%s, %s, %s) RETURNING id",
+                (data["sender_id"], data["recipient_id"], data.get("ad_id", None))
             )
             conversation_id = cur.fetchone()[0]
         else:
