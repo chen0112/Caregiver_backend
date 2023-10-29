@@ -2185,7 +2185,8 @@ def fetch_messages_chat_conversation():
                 "recipient_id": message[2],
                 "content": message[3],
                 "createtime": message[4],
-                "conversation_id": message[5]
+                "conversation_id": message[5],
+                "ad_id":message[6]
             }
             messages_json.append(message_obj)
 
