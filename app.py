@@ -2153,22 +2153,23 @@ def list_conversations():
 @flask_app.route('/api/fetch_messages_chat_conversation', methods=['GET'])
 def fetch_messages_chat_conversation():
     conversation_id = request.args.get('conversation_id')
-
+    ad_id = request.args.get('ad_id')   
     if not conversation_id:
         return jsonify({'error': 'conversation_id is required'}), 400
 
         # Convert to integer to prevent SQL injection
     try:
         conversation_id = int(conversation_id)
+        ad_id = int(ad_id)
     except ValueError:
-        return jsonify({'error': 'Invalid conversation_id'}), 400
+        return jsonify({'error': 'Invalid conversation_id or ad_id'}), 400
 
     try:
         db = get_db()
         cursor = db.cursor(cursor_factory=DictCursor)
 
         cursor.execute(
-            "SELECT * FROM messages WHERE conversation_id = %s", (conversation_id,))
+            "SELECT * FROM messages WHERE conversation_id = %s AND ad_id = %s", (conversation_id, ad_id))
 
         messages = cursor.fetchall()
 
