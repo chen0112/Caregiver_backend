@@ -101,15 +101,23 @@ def sign_in():
     conn = get_db()  # Connection details
     cursor = conn.cursor()
 
-    # Fetch the hashed passcode from the database
-    cursor.execute("SELECT passcode FROM accounts WHERE phone = %s", (phone,))
+    # Fetch the hashed passcode and other details from the database
+    cursor.execute(
+        "SELECT id, phone, passcode, createtime, name, imageurl FROM accounts WHERE phone = %s", (phone,))
     result = cursor.fetchone()
 
     if result:
-        hashed_passcode = result[0]
+        id, phone, hashed_passcode, createtime, name, imageurl = result
         # Verify the hashed passcode
         if bcrypt.checkpw(passcode.encode('utf-8'), hashed_passcode.encode('utf-8')):
-            return jsonify(success=True), 200
+            return jsonify(success=True, user={
+                "id": id,
+                "phone": phone,
+                # Format to a string representation
+                "createtime": createtime.strftime('%Y-%m-%d %H:%M:%S'),
+                "name": name,
+                "imageurl": imageurl
+            }), 200
         else:
             return jsonify(success=False, message='密码不正确'), 401
     else:
