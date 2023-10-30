@@ -109,31 +109,7 @@ def sign_in():
         hashed_passcode = result[0]
         # Verify the hashed passcode
         if bcrypt.checkpw(passcode.encode('utf-8'), hashed_passcode.encode('utf-8')):
-            # Check if the user has posted ads before
-            cursor.execute(
-                "SELECT COUNT(*) FROM caregivers WHERE phone = %s", (phone,))
-            has_posted_ads_caregivers = cursor.fetchone()[0] > 0
-
-            # Check if the user has posted ads in careneeders table
-            cursor.execute(
-                "SELECT COUNT(*) FROM careneeder WHERE phone = %s", (phone,))
-            has_posted_ads_careneeders = cursor.fetchone()[0] > 0
-
-            # Check if the user has posted forms before in animalcaregiverform table
-            cursor.execute(
-                "SELECT COUNT(*) FROM animalcaregiverform WHERE phone = %s", (phone,))
-            has_posted_ads_animalcaregiverform = cursor.fetchone()[0] > 0
-
-            # Check if the user has posted forms before in animalcareneederform table
-            cursor.execute(
-                "SELECT COUNT(*) FROM animalcareneederform WHERE phone = %s", (phone,))
-            has_posted_ads_animalcareneederform = cursor.fetchone()[0] > 0
-
-            # Combine all checks
-            has_posted_ads = (has_posted_ads_caregivers or has_posted_ads_careneeders
-                              or has_posted_ads_animalcaregiverform or has_posted_ads_animalcareneederform)
-
-            return jsonify(success=True, hasPostedAds=has_posted_ads), 200
+            return jsonify(success=True), 200
         else:
             return jsonify(success=False, message='密码不正确'), 401
     else:
@@ -2153,7 +2129,7 @@ def list_conversations():
 @flask_app.route('/api/fetch_messages_chat_conversation', methods=['GET'])
 def fetch_messages_chat_conversation():
     conversation_id = request.args.get('conversation_id')
-    ad_id = request.args.get('ad_id')   
+    ad_id = request.args.get('ad_id')
     if not conversation_id:
         return jsonify({'error': 'conversation_id is required'}), 400
 
@@ -2186,7 +2162,7 @@ def fetch_messages_chat_conversation():
                 "content": message[3],
                 "createtime": message[4],
                 "conversation_id": message[5],
-                "ad_id":message[6]
+                "ad_id": message[6]
             }
             messages_json.append(message_obj)
 
