@@ -125,11 +125,11 @@ def sign_in():
 
     # Fetch the hashed passcode and other details from the database
     cursor.execute(
-        "SELECT id, phone, passcode, createtime, name, imageurl, last_seen FROM accounts WHERE phone = %s", (phone,))
+        "SELECT id, phone, passcode, createtime, name, imageurl FROM accounts WHERE phone = %s", (phone,))
     result = cursor.fetchone()
 
     if result:
-        id, phone, hashed_passcode, createtime, name, imageurl, last_seen = result
+        id, phone, hashed_passcode, createtime, name, imageurl = result
         # Verify the hashed passcode
         if bcrypt.checkpw(passcode.encode('utf-8'), hashed_passcode.encode('utf-8')):
 
@@ -138,26 +138,43 @@ def sign_in():
                 "UPDATE accounts SET last_seen=NOW() WHERE id=%s", (id,))
             conn.commit()
 
-            # Determine online status based on the last_seen timestamp
-            is_online = False
-            if last_seen:
-                time_diff = datetime.datetime.now() - last_seen
-                # Considered online if seen in the last 5 minutes
-                is_online = time_diff.total_seconds() < 5*60
-
             return jsonify(success=True, user={
                 "id": id,
                 "phone": phone,
                 # Format to a string representation
                 "createtime": createtime.strftime('%Y-%m-%d %H:%M:%S'),
                 "name": name,
-                "imageurl": imageurl,
-                "online": is_online  # Return the online status as part of the user details
+                "imageurl": imageurl
             }), 200
         else:
             return jsonify(success=False, message='密码不正确'), 401
     else:
         return jsonify(success=False, message='电话号码不正确'), 404
+
+@flask_app.route('/api/usersstatus', methods=['POST'])
+def users_status():
+    # Expecting a list of phone numbers from the frontend
+    phone_numbers = request.json['phone_numbers']
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Use the IN clause to match multiple phone numbers
+    placeholders = ', '.join(['%s'] * len(phone_numbers))
+    query = f"SELECT phone, last_seen FROM accounts WHERE phone IN ({placeholders})"
+    cursor.execute(query, tuple(phone_numbers))
+    results = cursor.fetchall()
+
+    online_statuses = {}
+    for phone, last_seen in results:
+        is_online = False
+        if last_seen:
+            time_diff = datetime.datetime.now() - last_seen
+            is_online = time_diff.total_seconds() < 5*60
+        online_statuses[phone] = is_online
+
+    return jsonify(online_statuses), 200
+
 
 
 @flask_app.route("/api/mycaregiver/<phone>", methods=["GET"])
