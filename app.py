@@ -155,6 +155,9 @@ def users_status():
     # Expecting a list of phone numbers from the frontend
     phone_numbers = request.json['phone_numbers']
 
+    if not phone_numbers:  # Check if phone_numbers list is empty
+        return jsonify({}), 200  # Return an empty JSON
+
     conn = get_db()
     cursor = conn.cursor()
 
@@ -169,7 +172,7 @@ def users_status():
         is_online = False
         if last_seen:
             time_diff = datetime.now() - last_seen
-            is_online = time_diff.total_seconds() < 5*60
+            is_online = time_diff.total_seconds() < 10*60
         online_statuses[phone] = is_online
 
     return jsonify(online_statuses), 200
