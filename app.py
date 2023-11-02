@@ -37,6 +37,28 @@ file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
 flask_app.logger.addHandler(file_handler)
 
+# Database connection configuration
+
+db_config = {
+    "dbname": os.environ.get("DB_NAME"),
+    "user": os.environ.get("DB_USER"),
+    "password": os.environ.get("DB_PASSWORD"),
+    "host": os.environ.get("DB_HOST"),
+    "port": os.environ.get("DB_PORT"),
+}
+
+
+# Setting up a connection pool
+db_pool = psycopg2.pool.SimpleConnectionPool(1, 20, **db_config)
+
+
+def get_db():
+    # Check if db instance is set, if not get a new connection
+    if 'db' not in g:
+        g.db = db_pool.getconn()
+
+    return g.db
+
 
 s3 = boto3.client('s3')
 
@@ -103,20 +125,34 @@ def sign_in():
 
     # Fetch the hashed passcode and other details from the database
     cursor.execute(
-        "SELECT id, phone, passcode, createtime, name, imageurl FROM accounts WHERE phone = %s", (phone,))
+        "SELECT id, phone, passcode, createtime, name, imageurl, last_seen FROM accounts WHERE phone = %s", (phone,))
     result = cursor.fetchone()
 
     if result:
-        id, phone, hashed_passcode, createtime, name, imageurl = result
+        id, phone, hashed_passcode, createtime, name, imageurl, last_seen = result
         # Verify the hashed passcode
         if bcrypt.checkpw(passcode.encode('utf-8'), hashed_passcode.encode('utf-8')):
+
+            # Update the last_seen timestamp to the current time
+            cursor.execute(
+                "UPDATE accounts SET last_seen=NOW() WHERE id=%s", (id,))
+            conn.commit()
+
+            # Determine online status based on the last_seen timestamp
+            is_online = False
+            if last_seen:
+                time_diff = datetime.datetime.now() - last_seen
+                # Considered online if seen in the last 5 minutes
+                is_online = time_diff.total_seconds() < 5*60
+
             return jsonify(success=True, user={
                 "id": id,
                 "phone": phone,
                 # Format to a string representation
                 "createtime": createtime.strftime('%Y-%m-%d %H:%M:%S'),
                 "name": name,
-                "imageurl": imageurl
+                "imageurl": imageurl,
+                "online": is_online  # Return the online status as part of the user details
             }), 200
         else:
             return jsonify(success=False, message='密码不正确'), 401
@@ -287,29 +323,6 @@ def upload_file():
         # You can log the exception for debugging
         logger.error("File upload failed", exc_info=True)
         return jsonify({"error": "File upload failed"}), 500
-
-
-# Database connection configuration
-
-db_config = {
-    "dbname": os.environ.get("DB_NAME"),
-    "user": os.environ.get("DB_USER"),
-    "password": os.environ.get("DB_PASSWORD"),
-    "host": os.environ.get("DB_HOST"),
-    "port": os.environ.get("DB_PORT"),
-}
-
-
-# Setting up a connection pool
-db_pool = psycopg2.pool.SimpleConnectionPool(1, 20, **db_config)
-
-
-def get_db():
-    # Check if db instance is set, if not get a new connection
-    if 'db' not in g:
-        g.db = db_pool.getconn()
-
-    return g.db
 
 
 @flask_app.teardown_appcontext
