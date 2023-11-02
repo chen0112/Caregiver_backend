@@ -10,7 +10,6 @@ from psycopg2.extras import DictCursor
 import logging
 from flask import make_response
 import psycopg2.extras
-import datetime
 import bcrypt
 import json
 from datetime import datetime
@@ -169,7 +168,7 @@ def users_status():
     for phone, last_seen in results:
         is_online = False
         if last_seen:
-            time_diff = datetime.datetime.now() - last_seen
+            time_diff = datetime.now() - last_seen
             is_online = time_diff.total_seconds() < 5*60
         online_statuses[phone] = is_online
 
