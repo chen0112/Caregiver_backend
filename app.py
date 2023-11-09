@@ -59,7 +59,8 @@ def get_db():
     return g.db
 
 
-s3 = boto3.client('s3')
+s3 = boto3.client('s3', region_name='ap-east-1')
+
 
 
 @flask_app.route('/status')
