@@ -67,6 +67,17 @@ def status():
     flask_app.logger.info('Status endpoint was called')
     return "Gunicorn is running good!", 200
 
+@flask_app.route("/test_connection")
+def test_connection():
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM caregivers")
+        results = cursor.fetchall()
+        return jsonify({"status": "success", "message": "Connection to PostgreSQL database successful"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to connect to PostgreSQL database: {str(e)}"})
+
 
 @flask_app.route("/test_put", methods=["PUT"])
 def test_put():
