@@ -344,8 +344,8 @@ def upload_file():
             filename = secure_filename(file.filename)
             tmp_filepath = os.path.join('/tmp', filename)
             file.save(tmp_filepath)
-            response = s3.upload_file(tmp_filepath, 'alex-chen', filename)
-            url = f"https://alex-chen.s3.us-west-1.amazonaws.com/{filename}"
+            response = s3.upload_file(tmp_filepath, 'alex-chen-images', filename)
+            url = f"https://alex-chen-images.s3.ap-east-1.amazonaws.com/{filename}"
             # Cleanup temp file
             os.remove(tmp_filepath)
             return jsonify({"url": url})
