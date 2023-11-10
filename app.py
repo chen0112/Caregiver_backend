@@ -2136,11 +2136,11 @@ def list_conversations():
         LEFT JOIN (
             SELECT content, createtime, conversation_id, ad_id, ad_type
             FROM messages 
-            WHERE (conversation_id, createtime) IN (
-                SELECT conversation_id, MAX(createtime) 
+            WHERE (conversation_id, createtime, ad_type) IN (
+                SELECT conversation_id, MAX(createtime), ad_type 
                 FROM messages 
                 WHERE sender_id = %s OR recipient_id = %s
-                GROUP BY conversation_id, ad_id
+                GROUP BY conversation_id, ad_id, ad_type
             )
         ) m ON m.conversation_id = c.id
         WHERE c.user1_phone = %s OR c.user2_phone = %s 
