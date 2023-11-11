@@ -21,12 +21,9 @@ logging.basicConfig(filename='/home/alex_chen/Caregiver_backend/app.log', level=
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
 
-
 flask_app = Flask(__name__)
 
-
 CORS(flask_app, resources={r"/*": {"origins": "*"}})
-
 
 flask_app.logger.setLevel(logging.DEBUG)
 
