@@ -2270,10 +2270,10 @@ def get_account(phone):
         return jsonify({"error": "Failed to fetch account"}), 500
 
 
-@flask_app.route('/api/verify-identity', methods=['POST'])
+@flask_app.route('/api/verify_identity', methods=['POST'])
 def verify_identity():
-
     flask_app.logger.info("request data--------")
+
     idCard = request.json.get('idCard')
     name = request.json.get('name')
     phone = request.json.get('phone')
