@@ -16,8 +16,8 @@ import json
 from datetime import datetime
 import traceback
 
-
-logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.INFO,
+# AWS server will be /home/ubuntu/Caregiver_backend/app.log
+logging.basicConfig(filename='/home/alex_chen/Caregiver_backend/app.log', level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -2268,81 +2268,6 @@ def get_account(phone):
         flask_app.logger.error(
             f"Error fetching account for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch account"}), 500
-
-
-@flask_app.route('/api/verify_identity', methods=['POST'])
-def verify_identity():
-    flask_app.logger.info("request data--------")
-
-    flask_app.logger.info("Raw request data: %s", request.data)
-
-    try:
-        request_data = request.get_json()
-        flask_app.logger.info("Parsed JSON: %s", request_data)
-    except Exception as e:
-        flask_app.logger.error("JSON parsing error: %s", str(e))
-        return jsonify({"error": "Invalid JSON"}), 400
-    
-    idCard = request.json.get('idCard')
-    name = request.json.get('name')
-    phone = request.json.get('phone')
-
-    flask_app.logger.info("Sending data to RapidAPI - idCard: %s, name: %s", idCard, name)
-
-
-    url = 'https://chinese-identity-verification.p.rapidapi.com/china_ids/verificate'
-    headers = {
-        'content-type': 'application/x-www-form-urlencoded',
-        'X-RapidAPI-Key': "b35fe738ffmsh44b517ecded8719p1c4e9fjsnfc75893cf692",  # Replace with your RapidAPI key
-        'X-RapidAPI-Host': 'chinese-identity-verification.p.rapidapi.com'
-    }
-    data = {
-        'idCard': idCard,
-        'name': name
-    }
-
-    response = requests.post(url, headers=headers, data=data)
-
-    flask_app.logger.info("RapidAPI response status: %s", response.status_code)
-    flask_app.logger.info("RapidAPI response: %s", response.text)
-
-    if response.status_code == 200:
-        verification_result = response.json()
-        try:
-            conn = get_db()
-            cur = conn.cursor()
-            
-            # Assume that 'account_id' is fetched based on the 'phone' provided
-            # This requires an additional query to the 'accounts' table
-            cur.execute("SELECT id FROM accounts WHERE phone = %s", (phone,))
-            account_id = cur.fetchone()[0]
-
-            cur.execute("""
-                INSERT INTO IdVerification (
-                    account_id, name, idNo, respMessage, respCode, 
-                    province, city, county, birthday, sex, age, verified
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
-                account_id, name, idCard, verification_result['respMessage'], 
-                verification_result['respCode'], verification_result['province'], 
-                verification_result['city'], verification_result['county'], 
-                verification_result['birthday'], verification_result['sex'], 
-                verification_result['age'], verification_result['respCode'] == '0000'
-            ))
-
-            # Optionally, update the 'accounts' table
-            cur.execute("UPDATE accounts SET is_verified = TRUE WHERE id = %s", (account_id,))
-
-            conn.commit()
-            return jsonify({"message": "Identity verification data stored successfully"}), 200
-        except Exception as e:
-            flask_app.logger.error(f"Database error: {e}")
-            return jsonify({"error": "Failed to store identity verification data"}), 500
-        finally:
-            cur.close()
-            conn.close()
-    else:
-        return jsonify({"error": "Failed to verify identity"}), response.status_code
 
 
 if __name__ == "__main__":
