@@ -2274,11 +2274,21 @@ def get_account(phone):
 def verify_identity():
     flask_app.logger.info("request data--------")
 
+    flask_app.logger.info("Raw request data: %s", request.data)
+
+    try:
+        request_data = request.get_json()
+        flask_app.logger.info("Parsed JSON: %s", request_data)
+    except Exception as e:
+        flask_app.logger.error("JSON parsing error: %s", str(e))
+        return jsonify({"error": "Invalid JSON"}), 400
+    
     idCard = request.json.get('idCard')
     name = request.json.get('name')
     phone = request.json.get('phone')
 
-    flask_app.logger.info("request data",idCard, name, phone )
+    flask_app.logger.info("Sending data to RapidAPI - idCard: %s, name: %s", idCard, name)
+
 
     url = 'https://chinese-identity-verification.p.rapidapi.com/china_ids/verificate'
     headers = {
@@ -2293,7 +2303,8 @@ def verify_identity():
 
     response = requests.post(url, headers=headers, data=data)
 
-    flask_app.logger.info("Id response:---", response)
+    flask_app.logger.info("RapidAPI response status: %s", response.status_code)
+    flask_app.logger.info("RapidAPI response: %s", response.text)
 
     if response.status_code == 200:
         verification_result = response.json()
