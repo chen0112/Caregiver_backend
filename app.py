@@ -2272,6 +2272,8 @@ def get_account(phone):
 
 @flask_app.route('/api/verify-identity', methods=['POST'])
 def verify_identity():
+
+    flask_app.logger.info("request data--------")
     idCard = request.json.get('idCard')
     name = request.json.get('name')
     phone = request.json.get('phone')
@@ -2290,7 +2292,7 @@ def verify_identity():
     }
 
     response = requests.post(url, headers=headers, data=data)
-    
+
     flask_app.logger.info("Id response:---", response)
 
     if response.status_code == 200:
