@@ -2276,7 +2276,7 @@ def verify_identity():
     name = request.json.get('name')
     phone = request.json.get('phone')
 
-    print("request data",idCard, name, phone )
+    flask_app.logger.info("request data",idCard, name, phone )
 
     url = 'https://chinese-identity-verification.p.rapidapi.com/china_ids/verificate'
     headers = {
@@ -2290,7 +2290,7 @@ def verify_identity():
     }
 
     response = requests.post(url, headers=headers, data=data)
-    print("Id response:---", response)
+    flask_app.logger.info("Id response:---", response)
 
     if response.status_code == 200:
         verification_result = response.json()
