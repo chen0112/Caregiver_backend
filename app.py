@@ -2290,6 +2290,7 @@ def verify_identity():
     }
 
     response = requests.post(url, headers=headers, data=data)
+    
     flask_app.logger.info("Id response:---", response)
 
     if response.status_code == 200:
