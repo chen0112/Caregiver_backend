@@ -4,6 +4,7 @@ from flask_cors import CORS
 import psycopg2
 from psycopg2 import pool
 import boto3
+import requests
 from werkzeug.utils import secure_filename
 import os
 from psycopg2.extras import DictCursor
@@ -62,11 +63,11 @@ def get_db():
 s3 = boto3.client('s3', region_name='ap-east-1')
 
 
-
 @flask_app.route('/status')
 def status():
     flask_app.logger.info('Status endpoint was called')
     return "Gunicorn is running good!", 200
+
 
 @flask_app.route("/test_connection")
 def test_connection():
@@ -162,6 +163,7 @@ def sign_in():
     else:
         return jsonify(success=False, message='电话号码不正确'), 404
 
+
 @flask_app.route('/api/usersstatus', methods=['POST'])
 def users_status():
     # Expecting a list of phone numbers from the frontend
@@ -188,7 +190,6 @@ def users_status():
         online_statuses[phone] = is_online
 
     return jsonify(online_statuses), 200
-
 
 
 @flask_app.route("/api/mycaregiver/<phone>", methods=["GET"])
@@ -345,7 +346,8 @@ def upload_file():
             filename = secure_filename(file.filename)
             tmp_filepath = os.path.join('/tmp', filename)
             file.save(tmp_filepath)
-            response = s3.upload_file(tmp_filepath, 'alex-chen-images', filename)
+            response = s3.upload_file(
+                tmp_filepath, 'alex-chen-images', filename)
             url = f"https://alex-chen-images.s3.ap-east-1.amazonaws.com/{filename}"
             # Cleanup temp file
             os.remove(tmp_filepath)
@@ -2266,6 +2268,26 @@ def get_account(phone):
         flask_app.logger.error(
             f"Error fetching account for phone {phone}", exc_info=True)
         return jsonify({"error": "Failed to fetch account"}), 500
+
+
+@flask_app.route('/api/verify-identity', methods=['POST'])
+def verify_identity():
+    idCard = request.json.get('idCard')
+    name = request.json.get('name')
+
+    url = 'https://chinese-identity-verification.p.rapidapi.com/china_ids/verificate'
+    headers = {
+        'content-type': 'application/x-www-form-urlencoded',
+        'X-RapidAPI-Key': 'b35fe738ffmsh44b517ecded8719p1c4e9fjsnfc75893cf692',  # Replace with your RapidAPI key
+        'X-RapidAPI-Host': 'chinese-identity-verification.p.rapidapi.com'
+    }
+    data = {
+        'idCard': idCard,
+        'name': name
+    }
+
+    response = requests.post(url, headers=headers, data=data)
+    return jsonify(response.json())
 
 
 if __name__ == "__main__":
