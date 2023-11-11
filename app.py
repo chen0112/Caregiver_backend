@@ -31,7 +31,7 @@ CORS(flask_app, resources={r"/*": {"origins": "*"}})
 flask_app.logger.setLevel(logging.DEBUG)
 
 # Adding a file handler to write Flask's log messages to the same file
-file_handler = logging.FileHandler('/home/ubuntu/Caregiver_backend/app.log')
+file_handler = logging.FileHandler('/home/alex_chen/Caregiver_backend/app.log')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
