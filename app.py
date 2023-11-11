@@ -2287,6 +2287,7 @@ def verify_identity():
     }
 
     response = requests.post(url, headers=headers, data=data)
+    print("ID response:---", response)
     return jsonify(response.json())
 
 
