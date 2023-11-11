@@ -2274,6 +2274,7 @@ def get_account(phone):
 def verify_identity():
     idCard = request.json.get('idCard')
     name = request.json.get('name')
+    phone = request.json.get('phone')
 
     url = 'https://chinese-identity-verification.p.rapidapi.com/china_ids/verificate'
     headers = {
@@ -2287,8 +2288,45 @@ def verify_identity():
     }
 
     response = requests.post(url, headers=headers, data=data)
-    print("ID response:---", response)
-    return jsonify(response.json())
+    print("Id response:---", response)
+    
+    if response.status_code == 200:
+        verification_result = response.json()
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            
+            # Assume that 'account_id' is fetched based on the 'phone' provided
+            # This requires an additional query to the 'accounts' table
+            cur.execute("SELECT id FROM accounts WHERE phone = %s", (phone,))
+            account_id = cur.fetchone()[0]
+
+            cur.execute("""
+                INSERT INTO IdVerification (
+                    account_id, name, idNo, respMessage, respCode, 
+                    province, city, county, birthday, sex, age, verified
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                account_id, name, idCard, verification_result['respMessage'], 
+                verification_result['respCode'], verification_result['province'], 
+                verification_result['city'], verification_result['county'], 
+                verification_result['birthday'], verification_result['sex'], 
+                verification_result['age'], verification_result['respCode'] == '0000'
+            ))
+
+            # Optionally, update the 'accounts' table
+            cur.execute("UPDATE accounts SET is_verified = TRUE WHERE id = %s", (account_id,))
+
+            conn.commit()
+            return jsonify({"message": "Identity verification data stored successfully"}), 200
+        except Exception as e:
+            flask_app.logger.error(f"Database error: {e}")
+            return jsonify({"error": "Failed to store identity verification data"}), 500
+        finally:
+            cur.close()
+            conn.close()
+    else:
+        return jsonify({"error": "Failed to verify identity"}), response.status_code
 
 
 if __name__ == "__main__":
