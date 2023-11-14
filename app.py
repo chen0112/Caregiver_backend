@@ -16,7 +16,10 @@ from datetime import datetime
 import traceback
 
 # AWS server will be /home/ubuntu/Caregiver_backend/app.log
-logging.basicConfig(filename='/home/alex_chen/Caregiver_backend/app.log', level=logging.INFO,
+# logging.basicConfig(filename='/home/alex_chen/Caregiver_backend/app.log', level=logging.INFO,
+#                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
+
+logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -27,7 +30,8 @@ CORS(flask_app, resources={r"/*": {"origins": "*"}})
 flask_app.logger.setLevel(logging.DEBUG)
 
 # Adding a file handler to write Flask's log messages to the same file
-file_handler = logging.FileHandler('/home/alex_chen/Caregiver_backend/app.log')
+# file_handler = logging.FileHandler('/home/alex_chen/Caregiver_backend/app.log')
+file_handler = logging.FileHandler('/home/ubuntu/Caregiver_backend/app.log')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
