@@ -4,7 +4,6 @@ from flask_cors import CORS
 import psycopg2
 from psycopg2 import pool
 import boto3
-import requests
 from werkzeug.utils import secure_filename
 import os
 from psycopg2.extras import DictCursor
@@ -463,6 +462,216 @@ def add_caregiver():
     except Exception as e:
         logger.error(f"Error adding caregiver: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add caregiver"}), 500
+
+@flask_app.route("/api/caregiver_schedule", methods=["POST"])
+def add_caregiver_schedule():
+    try:
+        data = request.get_json()
+
+        # Log the received data for debugging
+        flask_app.logger.debug("Received data: %s", data)
+
+        # Validate that careneeder_id is provided
+        if "caregiver_id" not in data:
+            return jsonify({"error": "caregiver_id is required"}), 400
+
+        # Define the columns for the INSERT query
+        columns = ["scheduletype", "totalhours", "frequency",
+                   "startdate", "selectedtimeslots", "durationdays", "caregiver_id"]
+
+        # Initialize values list
+        values = []
+
+        # Iterate through the columns and append the values if they exist
+        for column in columns:
+            if column in data:
+                values.append(data[column])
+            else:
+                values.append(None)
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(columns)
+        values_placeholder = ', '.join(['%s'] * len(columns))
+        insert_query = f"INSERT INTO caregiverschedule ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_schedule_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the Schedule interface
+        new_schedule = {
+            "id": new_schedule_id,
+        }
+
+        # Include columns in the return object if they exist
+        for column in columns:
+            if column in data:
+                new_schedule[column] = data[column]
+
+        return jsonify(new_schedule), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        flask_app.logger.error(
+            f"Error adding schedule: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add schedule"}), 500
+    finally:
+        if conn:
+            conn.close()    
+
+@flask_app.route('/api/all_caregiverschedule', methods=['GET'])
+def get_all_caregiverschedule():
+    flask_app.logger.info("Entering GET /api/all_caregiverschedule request")
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch careneederschedule data from the database
+        cursor.execute("SELECT * FROM caregiverschedule ORDER BY id DESC")
+        rows = cursor.fetchall()
+        flask_app.logger.debug(
+            f"Fetched {len(rows)} caregiverschedule records from the database")
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            flask_app.logger.warning(
+                "No caregiverschedule records found in the database")
+            return jsonify({"error": "No caregiverschedule data available"}), 404
+
+        # Format the data for JSON
+
+        caregiverschedule = [dict(row) for row in rows]
+
+        flask_app.logger.debug(
+            "Successfully processed all caregiverschedule data")
+
+        response = make_response(jsonify(caregiverschedule))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+    except Exception as e:
+        flask_app.logger.error(
+            "Error fetching all caregiverschedule", exc_info=True)
+        return jsonify({"error": "Failed to fetch all caregiverschedule"}), 500        
+        
+
+@flask_app.route("/api/caregiver_ads", methods=["POST"])
+def add_caregiver_ad():
+    try:
+        data = request.get_json()
+
+        # Define the columns for the INSERT query
+        columns = ["title", "description", "caregiver_id"]
+
+        # Initialize values list
+        values = []
+
+        # Iterate through the columns and append the values if they exist
+        for column in columns:
+            if column in data:
+                values.append(data[column])
+            else:
+                values.append(None)
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(columns)
+        values_placeholder = ', '.join(['%s'] * len(columns))
+        insert_query = f"INSERT INTO caregiverads ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_ad_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the ad interface
+        new_ad = {
+            "id": new_ad_id,
+        }
+
+        # Include columns in the return object if they exist
+        for column in columns:
+            if column in data:
+                new_ad[column] = data[column]
+
+        return jsonify(new_ad), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        flask_app.logger.error(
+            f"Error adding caregiver ad: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add caregiver ad"}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+@flask_app.route("/api/all_caregiverads", methods=["GET"])
+def get_caregiver_ads():
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        # Use DictCursor to fetch rows as dictionaries
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Execute the SELECT query to fetch all records from the caregiverads table
+        select_query = "SELECT * FROM caregiverads ORDER BY id DESC"
+        cursor.execute(select_query)
+
+        # Fetch all rows and close the cursor
+        rows = cursor.fetchall()
+        cursor.close()
+
+        flask_app.logger.debug(
+            f"Fetched {len(rows)} caregiverads records from the database")
+
+        # Check the data type of the first row for debugging
+        if rows:
+            flask_app.logger.debug(f"First row data type: {type(rows[0])}")
+
+        if not rows:
+            flask_app.logger.warning(
+                "No caregiverads records found in the database")
+            return jsonify({"error": "No caregiverads data available"}), 404
+
+        caregiverads = [dict(row) for row in rows]
+
+        flask_app.logger.debug("Successfully processed all caregiverads data")
+
+        response = make_response(jsonify(caregiverads))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+
+    except Exception as e:
+        if conn:
+            conn.rollback()  # Rolling back in case of an error
+        flask_app.logger.error(
+            f"Error fetching caregiver ads: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to fetch caregiver ads"}), 500
+
+    finally:
+        if conn:
+            conn.close()
 
 
 @flask_app.route("/api/all_careneeders", methods=["POST"])
@@ -975,113 +1184,6 @@ def get_careneeder_ads():
         flask_app.logger.error(
             f"Error fetching careneeder ads: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to fetch careneeder ads"}), 500
-
-    finally:
-        if conn:
-            conn.close()
-
-
-@flask_app.route("/api/caregiver_ads", methods=["POST"])
-def add_caregiver_ad():
-    try:
-        data = request.get_json()
-
-        # Define the columns for the INSERT query
-        columns = ["title", "description", "caregiver_id"]
-
-        # Initialize values list
-        values = []
-
-        # Iterate through the columns and append the values if they exist
-        for column in columns:
-            if column in data:
-                values.append(data[column])
-            else:
-                values.append(None)
-
-        # Connect to the PostgreSQL database
-        conn = get_db()
-        cursor = conn.cursor()
-
-        # Construct the INSERT query with placeholders for all columns
-        columns_placeholder = ', '.join(columns)
-        values_placeholder = ', '.join(['%s'] * len(columns))
-        insert_query = f"INSERT INTO caregiverads ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
-
-        # Execute the INSERT query with the values
-        cursor.execute(insert_query, values)
-        new_ad_id = cursor.fetchone()[0]
-
-        # Commit the changes and close the connection
-        conn.commit()
-        cursor.close()
-
-        # Create the returned object based on the ad interface
-        new_ad = {
-            "id": new_ad_id,
-        }
-
-        # Include columns in the return object if they exist
-        for column in columns:
-            if column in data:
-                new_ad[column] = data[column]
-
-        return jsonify(new_ad), 201
-
-    except Exception as e:
-        if conn:
-            conn.rollback()  # Rolling back in case of an error
-        flask_app.logger.error(
-            f"Error adding caregiver ad: {str(e)}", exc_info=True)
-        return jsonify({"error": "Failed to add caregiver ad"}), 500
-    finally:
-        if conn:
-            conn.close()
-
-
-@flask_app.route("/api/all_caregiverads", methods=["GET"])
-def get_caregiver_ads():
-    try:
-        # Connect to the PostgreSQL database
-        conn = get_db()
-        # Use DictCursor to fetch rows as dictionaries
-        cursor = conn.cursor(cursor_factory=DictCursor)
-
-        # Execute the SELECT query to fetch all records from the caregiverads table
-        select_query = "SELECT * FROM caregiverads ORDER BY id DESC"
-        cursor.execute(select_query)
-
-        # Fetch all rows and close the cursor
-        rows = cursor.fetchall()
-        cursor.close()
-
-        flask_app.logger.debug(
-            f"Fetched {len(rows)} caregiverads records from the database")
-
-        # Check the data type of the first row for debugging
-        if rows:
-            flask_app.logger.debug(f"First row data type: {type(rows[0])}")
-
-        if not rows:
-            flask_app.logger.warning(
-                "No caregiverads records found in the database")
-            return jsonify({"error": "No caregiverads data available"}), 404
-
-        caregiverads = [dict(row) for row in rows]
-
-        flask_app.logger.debug("Successfully processed all caregiverads data")
-
-        response = make_response(jsonify(caregiverads))
-        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
-        response.headers['Pragma'] = 'no-cache'
-        return response
-
-    except Exception as e:
-        if conn:
-            conn.rollback()  # Rolling back in case of an error
-        flask_app.logger.error(
-            f"Error fetching caregiver ads: {str(e)}", exc_info=True)
-        return jsonify({"error": "Failed to fetch caregiver ads"}), 500
 
     finally:
         if conn:
