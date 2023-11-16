@@ -473,7 +473,7 @@ def add_caregiver_schedule():
         data = request.get_json()
 
         # Log the received data for debugging
-        flask_app.logger.debug("Received data: %s", data)
+        flask_app.logger.debug("Received data caregiver_schedule: %s", data)
 
         # Validate that careneeder_id is provided
         if "caregiver_id" not in data:
