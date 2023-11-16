@@ -1439,7 +1439,45 @@ def add_animalcaregiver_schedule():
         return jsonify({"error": "Failed to add schedule"}), 500
     finally:
         if conn:
-            conn.close()              
+            conn.close()    
+
+@flask_app.route('/api/all_animalcaregiverschedule', methods=['GET'])
+def get_all_animalcaregiverschedule():
+    flask_app.logger.info("Entering GET /api/all_animalcaregiverschedule request")
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch careneederschedule data from the database
+        cursor.execute("SELECT * FROM animalcaregiverschedule ORDER BY id DESC")
+        rows = cursor.fetchall()
+        flask_app.logger.debug(
+            f"Fetched {len(rows)} animalcaregiverschedule records from the database")
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            flask_app.logger.warning(
+                "No animalcaregiverschedule records found in the database")
+            return jsonify({"error": "No animalcaregiverschedule data available"}), 404
+
+        # Format the data for JSON
+
+        caregiverschedule = [dict(row) for row in rows]
+
+        flask_app.logger.debug(
+            "Successfully processed all animalcaregiverschedule data")
+
+        response = make_response(jsonify(caregiverschedule))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+    except Exception as e:
+        flask_app.logger.error(
+            "Error fetching all animalcaregiverschedule", exc_info=True)
+        return jsonify({"error": "Failed to fetch all animalcaregiverschedule"}), 500                          
 
 
 @flask_app.route('/api/all_animalcaregivers', methods=['GET'])
