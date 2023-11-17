@@ -1862,6 +1862,71 @@ def add_animalcareneeder_detail():
         if conn:
             conn.close()
 
+@flask_app.route("/api/animalcareneeder_schedule", methods=["POST"])
+def add_animalcareneeder_schedule():
+    try:
+        data = request.get_json()
+
+        # Log the received data for debugging
+        flask_app.logger.debug("Received data animalcareneeder_schedule: %s", data)
+
+        # Validate that careneeder_id is provided
+        if "animalcareneederform_id" not in data:
+            return jsonify({"error": "animalcareneederform_id is required"}), 400
+
+        # Define the columns for the INSERT query
+        columns = ["scheduletype", "totalhours", "frequency",
+                   "startdate", "selectedtimeslots", "durationdays", "animalcareneederform_id"]
+
+        # Initialize values list
+        values = []
+
+        # Iterate through the columns and append the values if they exist
+        for column in columns:
+            if column in data:
+                values.append(data[column])
+            else:
+                values.append(None)
+
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Construct the INSERT query with placeholders for all columns
+        columns_placeholder = ', '.join(columns)
+        values_placeholder = ', '.join(['%s'] * len(columns))
+        insert_query = f"INSERT INTO animalcareneederschedule ({columns_placeholder}) VALUES ({values_placeholder}) RETURNING id"
+
+        # Execute the INSERT query with the values
+        cursor.execute(insert_query, values)
+        new_schedule_id = cursor.fetchone()[0]
+
+        # Commit the changes and close the connection
+        conn.commit()
+        cursor.close()
+
+        # Create the returned object based on the Schedule interface
+        new_schedule = {
+            "id": new_schedule_id,
+        }
+
+        # Include columns in the return object if they exist
+        for column in columns:
+            if column in data:
+                new_schedule[column] = data[column]
+
+        return jsonify(new_schedule), 201
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        flask_app.logger.error(
+            f"Error adding schedule: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to add schedule"}), 500
+    finally:
+        if conn:
+            conn.close()                
+
 
 @flask_app.route("/api/animalcareneeder_ads", methods=["POST"])
 def add_animal_careneeder_ad():
