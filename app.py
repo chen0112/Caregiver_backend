@@ -2037,6 +2037,44 @@ def get_all_animal_careneeders():
             "Error fetching all animal careneeders", exc_info=True)
         return jsonify({"error": "Failed to fetch all animal careneeders"}), 500
 
+@flask_app.route('/api/all_animalcareneederschedule', methods=['GET'])
+def get_all_animalcareneederschedule():
+    flask_app.logger.info("Entering GET /api/all_animalcareneederschedule request")
+    try:
+        # Connect to the PostgreSQL database
+        conn = get_db()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+
+        # Fetch careneederschedule data from the database
+        cursor.execute("SELECT * FROM animalcareneederschedule ORDER BY id DESC")
+        rows = cursor.fetchall()
+        flask_app.logger.debug(
+            f"Fetched {len(rows)} animalcareneederschedule records from the database")
+
+        # Close the connection
+        cursor.close()
+
+        if not rows:
+            flask_app.logger.warning(
+                "No animalcareneederschedule records found in the database")
+            return jsonify({"error": "No animalcareneederschedule data available"}), 404
+
+        # Format the data for JSON
+
+        caregiverschedule = [dict(row) for row in rows]
+
+        flask_app.logger.debug(
+            "Successfully processed all animalcareneederschedule data")
+
+        response = make_response(jsonify(caregiverschedule))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+        response.headers['Pragma'] = 'no-cache'
+        return response
+    except Exception as e:
+        flask_app.logger.error(
+            "Error fetching all animalcareneederschedule", exc_info=True)
+        return jsonify({"error": "Failed to fetch all animalcareneederschedule"}), 500            
+
 
 @flask_app.route('/api/all_animal_careneeders_details', methods=['GET'])
 def get_all_animal_careneeders_details():
