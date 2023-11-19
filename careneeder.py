@@ -5,7 +5,6 @@ from db import close_db, get_db
 
 careneeder_bp = Blueprint('careneeder', __name__)
 
-
 @careneeder_bp.route("/all_careneeders", methods=["POST"])
 def add_careneeder():
     try:
