@@ -246,7 +246,7 @@ def handle_message():
 
         # Step 2: Insert the message with conversation_id
         query = """INSERT INTO messages (sender_id, recipient_id, content, ad_id, ad_type, createtime, conversation_id, ably_message_id)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"""
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id"""
 
         values = [
             data["sender_id"],
