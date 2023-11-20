@@ -451,7 +451,8 @@ def fetch_messages_chat_conversation():
                 "content": message[3],
                 "createtime": message[4],
                 "conversation_id": message[5],
-                "ad_id": message[6]
+                "ad_id": message[6],
+                "ably_message_id": message['ably_message_id']
             }
             messages_json.append(message_obj)
 
