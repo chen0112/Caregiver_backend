@@ -213,7 +213,8 @@ def handle_message():
         flask_app.logger.info(f"Input Data: {data}")
 
         # Define the mandatory fields required
-        mandatory_fields = ["sender_id", "recipient_id", "content", "ad_id"]
+        mandatory_fields = ["sender_id", "recipient_id",
+                            "content", "ad_id", "ably_message_id"]
 
         # Check if necessary data is provided
         if not all(data.get(field) for field in mandatory_fields):
@@ -244,7 +245,7 @@ def handle_message():
             conversation_id = conversation[0]
 
         # Step 2: Insert the message with conversation_id
-        query = """INSERT INTO messages (sender_id, recipient_id, content, ad_id, ad_type, createtime, conversation_id)
+        query = """INSERT INTO messages (sender_id, recipient_id, content, ad_id, ad_type, createtime, conversation_id, ably_message_id)
                    VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"""
 
         values = [
@@ -254,7 +255,8 @@ def handle_message():
             data["ad_id"],  # This field is now mandatory
             data.get("ad_type", None),  # Optional field
             createtime,
-            conversation_id
+            conversation_id,
+            data["ably_message_id"]
         ]
 
         # Execute the query
@@ -275,6 +277,8 @@ def handle_message():
         for column in mandatory_fields + ["ad_type", "createtime"]:
             if column in data:
                 new_messages[column] = data[column]
+
+        new_messages["ably_message_id"] = data["ably_message_id"]
 
         return jsonify(new_messages), 201
 

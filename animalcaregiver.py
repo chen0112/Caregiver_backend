@@ -438,7 +438,7 @@ def get_animalcaregiverform_detail(animalcaregiverform_id):
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
-        cursor = conn.cursor(cursor_factory=DictCursor)
+        cursor = conn.cursor(cursall_animalcaregiverformor_factory=DictCursor)
 
         # Fetch the specific record from the animalcaregiverform table using the id
         cursor.execute(
