@@ -180,7 +180,7 @@ def add_animal_caregiver_ad():
     except Exception as e:
         if conn:
             conn.rollback()  # Rolling back in case of an error
-        current_app.error(
+        current_app.logger.error(
             f"Error adding animal caregiver ad: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to add animal caregiver ad"}), 500
     finally:
@@ -438,7 +438,7 @@ def get_animalcaregiverform_detail(animalcaregiverform_id):
     try:
         # Connect to the PostgreSQL database
         conn = get_db()
-        cursor = conn.cursor(cursall_animalcaregiverformor_factory=DictCursor)
+        cursor = conn.cursor(cursor_factory=DictCursor)
 
         # Fetch the specific record from the animalcaregiverform table using the id
         cursor.execute(
@@ -467,7 +467,7 @@ def get_animalcaregiverform_detail(animalcaregiverform_id):
 
         return jsonify(animalcaregiverform)
     except Exception as e:
-        current_app.error(
+        current_app.logger.error(
             f"Error fetching animal caregiver form detail for id {animalcaregiverform_id}", exc_info=True)
         return jsonify({"error": "Failed to fetch animal caregiver form detail"}), 500
 
