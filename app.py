@@ -1,6 +1,7 @@
 from psycopg2.extras import DictCursor  # Assuming you are using psycopg2
 from flask import Flask, g, request, jsonify
 from flask_cors import CORS
+import sys
 import boto3
 from werkzeug.utils import secure_filename
 import os
@@ -8,7 +9,6 @@ from psycopg2.extras import DictCursor
 import logging
 from flask import make_response
 import bcrypt
-import json
 from datetime import datetime
 import traceback
 from db import close_db, get_db
@@ -16,12 +16,14 @@ from caregiver import caregiver_bp
 from careneeder import careneeder_bp
 from animalcaregiver import animalcaregiver_bp
 from animalcareneeder import animalcareneeder_bp
+from logging import StreamHandler
+
 
 # AWS server will be /home/ubuntu/Caregiver_backend/app.log
 # logging.basicConfig(filename='/home/alex_chen/Caregiver_backend/app.log', level=logging.INFO,
 #                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 
-logging.basicConfig(filename='/home/ubuntu/Caregiver_backend/app.log', level=logging.INFO,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -31,13 +33,21 @@ CORS(flask_app, resources={r"/*": {"origins": "*"}})
 
 flask_app.logger.setLevel(logging.DEBUG)
 
-# Adding a file handler to write Flask's log messages to the same file
-# file_handler = logging.FileHandler('/home/alex_chen/Caregiver_backend/app.log')
-file_handler = logging.FileHandler('/home/ubuntu/Caregiver_backend/app.log')
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(logging.Formatter(
-    '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
-flask_app.logger.addHandler(file_handler)
+# Create a StreamHandler to write logs to stdout
+stream_handler = StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.DEBUG)
+stream_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
+
+# Add the StreamHandler to Flask's logger
+flask_app.logger.addHandler(stream_handler)
+
+# # Adding a file handler to write Flask's log messages to the same file
+# # file_handler = logging.FileHandler('/home/alex_chen/Caregiver_backend/app.log')
+# file_handler = logging.FileHandler('/home/ubuntu/Caregiver_backend/app.log')
+# file_handler.setLevel(logging.DEBUG)
+# file_handler.setFormatter(logging.Formatter(
+#     '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'))
+# flask_app.logger.addHandler(file_handler)
 
 
 s3 = boto3.client('s3', region_name='ap-east-1')

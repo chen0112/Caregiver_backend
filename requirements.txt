@@ -40,7 +40,6 @@ Pillow==10.0.0
 psycopg==3.1.10
 psycopg-binary==3.1.10
 psycopg-pool==3.1.7
-psycopg2==2.9.6
 psycopg2-binary==2.9.7
 pyee==9.1.1
 PyJWT==2.8.0
@@ -63,3 +62,4 @@ websockets==10.4
 Werkzeug==2.3.6
 wsproto==1.2.0
 yarl==1.9.2
+gunicorn
